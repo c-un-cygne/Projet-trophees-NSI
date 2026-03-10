@@ -1,0 +1,211 @@
+ScreenManager:
+    LoginScreen:
+    MainScreen:
+    ConnexionScreen:
+    InscriptionScreen:
+
+<LoginScreen>:
+    name: "login"
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: "20dp"
+        padding: "40dp"
+
+        Widget:
+            size_hint_y: 0.1
+
+        MDLabel:
+            text: "Trophée NSI"
+            halign: "center"
+            font_style: "H4"
+            bold: True
+            size_hint_y: None
+            height: "50dp"
+
+        MDLabel:
+            text: "Bienvenue sur l'application"
+            halign: "center"
+            theme_text_color: "Secondary"
+            size_hint_y: None
+            height: "30dp"
+
+        Widget:
+            size_hint_y: 0.2
+
+        MDRaisedButton:
+            text: "Se connecter"
+            pos_hint: {"center_x": .5}
+            size_hint_x: 0.8
+            on_release:
+                app.root.current = "connexion"
+
+        MDFlatButton:
+            text: "S'inscrire"
+            pos_hint: {"center_x": .5}
+            size_hint_x: 0.8
+            on_release:
+                app.root.current = "inscription"
+
+        Widget:
+            size_hint_y: 0.1
+
+<ConnexionScreen>:
+    name: "connexion"
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: "20dp"
+        padding: "40dp"
+
+        Widget:
+            size_hint_y: 0.1
+
+        MDLabel:
+            text: "Connexion"
+            halign: "center"
+            font_style: "H5"
+            bold: True
+            size_hint_y: None
+            height: "50dp"
+
+        MDTextField:
+            id: username_field
+            hint_text: "Nom d'utilisateur"
+            size_hint_x: 0.9
+            pos_hint: {"center_x": .5}
+
+        MDTextField:
+            id: password_field
+            hint_text: "Mot de passe"
+            password: True
+            size_hint_x: 0.9
+            pos_hint: {"center_x": .5}
+
+        Widget:
+            size_hint_y: 0.1
+
+        MDRaisedButton:
+            text: "Se connecter"
+            pos_hint: {"center_x": .5}
+            size_hint_x: 0.8
+            on_release:
+                app.root.current = "main"
+
+        MDFlatButton:
+            text: "Retour"
+            pos_hint: {"center_x": .5}
+            on_release:
+                app.root.current = "login"
+
+        Widget:
+            size_hint_y: 0.1
+
+<InscriptionScreen>:
+    name: "inscription"
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: "20dp"
+        padding: "40dp"
+
+        Widget:
+            size_hint_y: 0.1
+
+        MDLabel:
+            text: "Inscription"
+            halign: "center"
+            font_style: "H5"
+            bold: True
+            size_hint_y: None
+            height: "50dp"
+
+        MDTextField:
+            hint_text: "Nom d'utilisateur"
+            size_hint_x: 0.9
+            pos_hint: {"center_x": .5}
+
+        MDTextField:
+            hint_text: "Email"
+            size_hint_x: 0.9
+            pos_hint: {"center_x": .5}
+
+        MDTextField:
+            hint_text: "Mot de passe"
+            password: True
+            size_hint_x: 0.9
+            pos_hint: {"center_x": .5}
+
+        MDTextField:
+            hint_text: "Confirmer mot de passe"
+            password: True
+            size_hint_x: 0.9
+            pos_hint: {"center_x": .5}
+
+        Widget:
+            size_hint_y: 0.1
+
+        MDRaisedButton:
+            text: "S'inscrire"
+            pos_hint: {"center_x": .5}
+            size_hint_x: 0.8
+            on_release:
+                app.root.current = "main"
+
+        MDFlatButton:
+            text: "Retour"
+            pos_hint: {"center_x": .5}
+            on_release:
+                app.root.current = "login"
+
+        Widget:
+            size_hint_y: 0.1
+
+<MainScreen>:
+    name: "main"
+    MDBoxLayout:
+        orientation: "vertical"
+
+        MDBottomNavigation:
+
+            HomeTab:
+                name: "home"
+                text: "Accueil"
+                icon: "home"
+
+            ProfileTab:
+                name: "profile"
+                text: "Compte"
+                icon: "account"
+
+            AddTab:
+                name: "add"
+                text: "Ajouter"
+                icon: "plus"
+
+            LeaderboardTab:
+                name: "leaderboard"
+                text: "Classement"
+                icon: "trophy"
+
+<HomeTab>:
+    MDLabel:
+        text: "Page Accueil"
+        halign: "center"
+
+<ProfileTab>:
+    MDBoxLayout:
+        orientation: "vertical"
+        MDLabel:
+            text: "Page Compte"
+            halign: "center"
+        MDLabel:
+            text: "SALAM ALEJKUM"
+            halign: "center"
+
+<AddTab>:
+    MDLabel:
+        text: "Ajouter empreinte"
+        halign: "center"
+
+<LeaderboardTab>:
+    MDLabel:
+        text: "Leaderboard"
+        halign: "center"
