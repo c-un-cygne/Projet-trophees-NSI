@@ -68,18 +68,24 @@ ScreenManager:
             height: "50dp"
 
         MDTextField:
-            id: username_field
+            id: utilisateur
             hint_text: "Nom d'utilisateur"
             size_hint_x: 0.9
             pos_hint: {"center_x": .5}
 
         MDTextField:
-            id: password_field
+            id: mot_de_passe
             hint_text: "Mot de passe"
             password: True
             size_hint_x: 0.9
             pos_hint: {"center_x": .5}
-
+        MDLabel:
+            id: error
+            text: ""
+            theme_text_color: "Error"
+            halign: "center"
+            size_hint_y: None
+            height: "20dp"
         Widget:
             size_hint_y: 0.1
 
@@ -88,7 +94,8 @@ ScreenManager:
             pos_hint: {"center_x": .5}
             size_hint_x: 0.8
             on_release:
-                app.root.current = "main"
+                root.connexion()
+                
 
         MDFlatButton:
             text: "Retour"
@@ -118,26 +125,38 @@ ScreenManager:
             height: "50dp"
 
         MDTextField:
+            id:utilisateur
             hint_text: "Nom d'utilisateur"
             size_hint_x: 0.9
             pos_hint: {"center_x": .5}
 
         MDTextField:
+            id:email
             hint_text: "Email"
             size_hint_x: 0.9
             pos_hint: {"center_x": .5}
 
         MDTextField:
+            id:mot_de_passe
             hint_text: "Mot de passe"
             password: True
             size_hint_x: 0.9
             pos_hint: {"center_x": .5}
 
         MDTextField:
+            id:mot_de_passe2
             hint_text: "Confirmer mot de passe"
+
             password: True
             size_hint_x: 0.9
             pos_hint: {"center_x": .5}
+        MDLabel:
+            id: password_error
+            text: ""
+            theme_text_color: "Error"
+            halign: "center"
+            size_hint_y: None
+            height: "20dp"
 
         Widget:
             size_hint_y: 0.1
@@ -147,7 +166,7 @@ ScreenManager:
             pos_hint: {"center_x": .5}
             size_hint_x: 0.8
             on_release:
-                app.root.current = "main"
+                root.inscription()
 
         MDFlatButton:
             text: "Retour"
