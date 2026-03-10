@@ -4,8 +4,11 @@ from kivy.core.window import Window
 from kivy.lang.builder import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.uix.bottomnavigation import MDBottomNavigationItem
-
+import sqlite3
+import os
 Window.size = [300, 600]
+rep_base = os.path.dirname(os.path.abspath(__file__))
+db_rep = os.path.join(rep_base, "data/users.db")
 
 class LoginScreen(Screen):
     pass
@@ -14,10 +17,48 @@ class MainScreen(Screen):
     pass
 
 class ConnexionScreen(Screen):
-    pass
-
+    def connexion(self):
+        utilisateur = self.ids.utilisateur.text
+        mot_de_passe = self.ids.mot_de_passe.text
+        c = sqlite3.connect(db_rep)
+        curseur = c.cursor()
+        curseur.execute("SELECT id FROM users WHERE username = ? AND password = ?", (utilisateur, mot_de_passe))
+        resultat = curseur.fetchone()
+        c.close()
+        if resultat:
+            MDApp.get_running_app().root.current = "main"
+            global user_id
+            user_id = resultat[0]
+        else:
+            self.ids.error.text = "Nom d'utilisateur ou mot de passe incorrect"
 class InscriptionScreen(Screen):
-    pass
+    def inscription(self):
+        utilisateur = self.ids.utilisateur.text
+        mot_de_passe = self.ids.mot_de_passe.text
+        mot_de_passe2 = self.ids.mot_de_passe2.text
+        if mot_de_passe != mot_de_passe2:
+            self.ids.password_error.text = "Les mots de passe ne correspondent pas"
+            return
+        elif len(mot_de_passe) < 6:
+            self.ids.password_error.text = "Le mot de passe doit contenir au moins 6 caractères"
+            return
+        self.ids.password_error.text = ""
+        emails = self.ids.email.text
+        c = sqlite3.connect(db_rep)
+        curseur = c.cursor()
+        curseur.execute("SELECT id FROM users WHERE username=?", (utilisateur,))
+        if curseur.fetchone():
+            self.ids.password_error.text = "Nom d'utilisateur déjà utilisé"
+            c.close()
+            return
+        curseur.execute("INSERT INTO users (username, password, email) VALUES (?, ?, ?)", (utilisateur, mot_de_passe, emails))
+        c.commit()  
+        c.close()
+        self.ids.utilisateur.text = ""
+        self.ids.email.text = ""
+        self.ids.mot_de_passe.text = ""
+        self.ids.mot_de_passe2.text = ""
+        MDApp.get_running_app().root.current = "main"
 
 #pour les tabs de la bar de nav
 class HomeTab(MDBottomNavigationItem):
