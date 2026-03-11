@@ -205,9 +205,16 @@ ScreenManager:
                 icon: "trophy"
 
 <HomeTab>:
-    MDLabel:
-        text: "Page Accueil"
-        halign: "center"
+    FloatLayout:
+        orientation: "vertical"
+        MDIconButton:
+            icon: "account-group"
+            pos_hint: {"right": 1, "top": 1}
+            on_release: app.menu_amis()
+            
+        MDLabel:
+            text: "Page Accueil"
+            halign: "center"
 
 <ProfileTab>:
     MDBoxLayout:
