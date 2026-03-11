@@ -4,6 +4,12 @@ from kivy.core.window import Window
 from kivy.lang.builder import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.uix.bottomnavigation import MDBottomNavigationItem
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.list import MDList, OneLineListItem
+from kivy.metrics import dp
+
 import sqlite3
 import os
 from kivymd.uix.dialog import MDDialog
@@ -29,8 +35,7 @@ class ConnexionScreen(Screen):
         c.close()
         if resultat:
             MDApp.get_running_app().root.current = "main"
-            global user_id
-            user_id = resultat[0]
+            MDApp.get_running_app().Id_Utilisateur = resultat[0]
         else:
             self.ids.error.text = "Nom d'utilisateur ou mot de passe incorrect"
 class InscriptionScreen(Screen):
@@ -74,10 +79,42 @@ class AddTab(MDBottomNavigationItem):
 
 class LeaderboardTab(MDBottomNavigationItem):
     pass
-
+class FriendsMenu(MDBoxLayout):
+    pass
 class TropheeNSIApp(MDApp):
     def build(self):
         return Builder.load_file("data/res.kv")
-
+    def menu_amis(self):
+        self.dialog = MDDialog(title="Amis", type="custom",  content_cls=FriendsMenu())
+        self.dialog.open()
+    def envoyer_demande(self, username):
+        c = sqlite3.connect(db_rep)
+        curseur = c.cursor()
+        curseur.execute("SELECT id FROM users WHERE username=?", (username,))
+        user = curseur.fetchone()    
+        if user is None:
+            c.close()
+            self.dialog.dismiss()
+            self.dialog = MDDialog(title = "Erreur", text=f"L'utilsateur {username} n'existe pas")
+            self.dialog.open()
+            return
+        bonid = user[0]
+        if bonid == self.Id_Utilisateur:
+            c.close()
+            return
+        curseur.execute("SELECT id FROM friendships WHERE user_id=? AND friend_id=? AND status=pending", (self.Id_Utilisateur, bonid))
+        if curseur.fetchone():
+            c.close()
+            self.dialog.dismiss()
+            self.dialog = MDDialog(title="Soucis", text="Demande déja envoyéé")
+            self.dialog.open()
+            return
+        curseur.execute("INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'pending')", (self.Id_Utilisateur, bonid))
+        c.commit()
+        c.close()
+        self.dialog.dismiss()
+        self.dialog = MDDialog(title="Succès", text = f"Demande envoyéé à {username}")
+        self.dialog.open()
+        
 if __name__ == "__main__":
     TropheeNSIApp().run()

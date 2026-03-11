@@ -3,7 +3,45 @@ ScreenManager:
     MainScreen:
     ConnexionScreen:
     InscriptionScreen:
+<FriendsMenu@MDBoxLayout>:
+    orientation: "vertical"
+    padding: "10dp"
+    spacing: "10dp"
+    size_hint_y: None
+    height: "400dp"
 
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: "10dp"
+        MDLabel:
+            text: "Mes amis"
+            bold: True
+            size_hint_y: None
+            height: "30dp"
+        ScrollView:
+            size_hint_y:1
+            MDList:
+                id:Liste_amis
+        MDRaisedButton:
+            text: "demandes d'ajout"
+            on_release: app.envoyer_demande(nom_amis.text)
+            pos_hint: {"center_x": .5}
+        MDLabel:
+            text: "Ajouter un ami"
+            bold: True
+            size_hint_y: None
+            height: "30dp"
+
+        MDTextField:
+            id: nom_amis
+            hint_text: "Nom d'utilisateur"
+            size_hint_y: None
+            height: "50dp"
+
+        MDRaisedButton:
+            text: "Envoyer la demande"
+            on_release: app.envoyer_demande(nom_amis.text)
+            pos_hint: {"center_x": .5}
 <LoginScreen>:
     name: "login"
     MDBoxLayout:
