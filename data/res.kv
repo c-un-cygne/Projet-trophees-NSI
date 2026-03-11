@@ -5,43 +5,69 @@ ScreenManager:
     InscriptionScreen:
 <FriendsMenu@MDBoxLayout>:
     orientation: "vertical"
-    padding: "10dp"
-    spacing: "10dp"
+    padding: "16dp"
+    spacing: "12dp"
     size_hint_y: None
-    height: "400dp"
+    height: "500dp"
 
-    MDBoxLayout:
-        orientation: "vertical"
-        spacing: "10dp"
-        MDLabel:
-            text: "Mes amis"
-            bold: True
-            size_hint_y: None
-            height: "30dp"
-        ScrollView:
-            size_hint_y:1
-            MDList:
-                id:Liste_amis
-        MDRaisedButton:
-            text: "demandes d'ajout"
-            on_release: app.envoyer_demande(nom_amis.text)
-            pos_hint: {"center_x": .5}
-        MDLabel:
-            text: "Ajouter un ami"
-            bold: True
-            size_hint_y: None
-            height: "30dp"
+    # ── Mes amis ──────────────────────────
+    MDLabel:
+        text: "Mes amis"
+        font_style: "Subtitle1"
+        bold: True
+        size_hint_y: None
+        height: "28dp"
 
-        MDTextField:
-            id: nom_amis
-            hint_text: "Nom d'utilisateur"
-            size_hint_y: None
-            height: "50dp"
+    ScrollView:
+        size_hint_y: None
+        height: "220dp"
+        MDList:
+            id: liste_amis
 
-        MDRaisedButton:
-            text: "Envoyer la demande"
-            on_release: app.envoyer_demande(nom_amis.text)
-            pos_hint: {"center_x": .5}
+    Widget:
+        size_hint_y: None
+        height: "1dp"
+        canvas:
+            Color:
+                rgba: 0.7, 0.7, 0.7, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    # ── Ajouter un ami ────────────────────
+    MDLabel:
+        text: "Ajouter un ami"
+        font_style: "Subtitle1"
+        bold: True
+        size_hint_y: None
+        height: "28dp"
+
+    MDTextField:
+        id: nom_amis
+        hint_text: "Nom d'utilisateur"
+        size_hint_y: None
+        height: "45dp"
+
+    MDRaisedButton:
+        text: "Envoyer la demande"
+        size_hint_x: 1          # ← pleine largeur
+        on_release: app.envoyer_demande(nom_amis.text)
+
+    Widget:
+        size_hint_y: None
+        height: "1dp"
+        canvas:
+            Color:
+                rgba: 0.7, 0.7, 0.7, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    # ── Voir demandes ─────────────────────
+    MDFlatButton:
+        text: "Voir les demandes reçues"
+        size_hint_x: 1
+        on_release: app.ouvrir_demandes()
 <LoginScreen>:
     name: "login"
     MDBoxLayout:
