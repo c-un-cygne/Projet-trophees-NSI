@@ -4,7 +4,7 @@ from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivy.core.window import Window
 from kivy.lang.builder import Builder
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivymd.uix.bottomnavigation import MDBottomNavigationItem
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -127,6 +127,8 @@ class DemandeAmis(MDBoxLayout):
 class ListItemDemandeAmis(MDBoxLayout):
     username = StringProperty()
 
+class ListItemAmis(MDBoxLayout):
+    username = StringProperty()
 
 def recuperer_demandes_amis(user_id):
     c = sqlite3.connect(db_rep)
@@ -152,23 +154,40 @@ class TropheeNSIApp(MDApp):
         self.accent = get_color_from_hex("#A4BE7B")
         self.background = get_color_from_hex("#E5D9B6")
 
-        Window.clearcolor = self.background
-
         self.theme_cls.primary_palette = "Green"
         self.theme_cls.primary_hue = "800"
         self.theme_cls.accent_palette = "Green"
         self.theme_cls.theme_style = "Light"
 
-        return Builder.load_file("data/res.kv")
+        kv = Builder.load_file("data/res.kv")
+        kv.transition.clearcolor = self.background
+        Window.clearcolor = self.background
+        return kv
 
     def menu_amis(self):
+        c = sqlite3.connect(db_rep)
+        curseur = c.cursor()
+        curseur.execute(
+            """SELECT users.username FROM friendships
+            JOIN users ON users.id != ?
+            WHERE (friendships.user_id = ? OR friendships.friend_id = ?)
+            AND friendships.status = 'friends'""",
+            (self.Id_Utilisateur, self.Id_Utilisateur, self.Id_Utilisateur),
+        )
+        amis = [row[0] for row in curseur.fetchall()]
+        c.close()
+
+        friends_menu = FriendsMenu()
+        friends_menu.ids.liste_amis.clear_widgets()
+        for username in amis:
+            friends_menu.ids.liste_amis.add_widget(ListItemAmis(username=username))
+
         self.dialog = MDDialog(
             title="Amis",
             type="custom",
-            content_cls=FriendsMenu(),
+            content_cls=friends_menu,
         )
         self.dialog.open()
-
     def menu_demande_amis(self):
         self.dialog.dismiss()
 
@@ -303,7 +322,25 @@ class TropheeNSIApp(MDApp):
             text=f"Demande envoyée à {username}",
         )
         self.dialog.open()
+    def supprimer_ami(self, username):
+        c = sqlite3.connect(db_rep)
+        curseur = c.cursor()
 
+        curseur.execute("SELECT id FROM users WHERE username=?", (username,))
+        userid = curseur.fetchone()[0]
+
+        curseur.execute(
+            """DELETE FROM friendships
+            WHERE (user_id=? AND friend_id=?) OR (user_id=? AND friend_id=?)
+            AND status='friends'""",
+            (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
+        )
+        c.commit()
+        c.close()
+        self.refresh_amis() 
+
+    def voir_profil(self, username):
+        pass #tkt on code ça biennnn plus tard
 
 if __name__ == "__main__":
     TropheeNSIApp().run()
