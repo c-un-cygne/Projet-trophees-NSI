@@ -3,23 +3,34 @@ ScreenManager:
     MainScreen:
     ConnexionScreen:
     InscriptionScreen:
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> main
 <DemandeAmis@MDBoxLayout>:
     orientation: "vertical"
     spacing: "12dp"
     size_hint_y: None
     height: "500dp"
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
     MDLabel:
         text: "Mes Demandes"
         font_style: "Subtitle1"
         bold: True
+<<<<<<< HEAD
         theme_text_color: "Custom"
         text_color: app.primary
         size_hint_y: None
         height: "28dp"
 
+=======
+        size_hint_y: None
+        height: "28dp"
+>>>>>>> main
     MDScrollView:
         size_hint: 1, 1
 
@@ -80,9 +91,13 @@ ScreenManager:
 
     MDRaisedButton:
         text: "Envoyer la demande"
+<<<<<<< HEAD
         md_bg_color: app.primary
         text_color: 1,1,1,1
         size_hint_x: 1
+=======
+        size_hint_x: 1         
+>>>>>>> main
         on_release: app.envoyer_demande(nom_amis.text)
 
     Widget:
@@ -101,8 +116,11 @@ ScreenManager:
         text_color: app.secondary
         size_hint_x: 1
         on_release: app.menu_demande_amis()
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> main
 <LoginScreen>:
     name: "login"
 
@@ -348,9 +366,13 @@ ScreenManager:
     MDLabel:
         text: "Leaderboard"
         halign: "center"
+<<<<<<< HEAD
 
 
 <ListItemDemandeAmis>:
+=======
+<ListItemDemandeAmis>
+>>>>>>> main
     size_hint_y: None
     height: "56dp"
     orientation: "horizontal"
@@ -373,4 +395,8 @@ ScreenManager:
         theme_icon_color: "Custom"
         icon_color: "red"
         pos_hint: {"center_y": .5}
+<<<<<<< HEAD
         on_release: app.refuse_request(root.username)
+=======
+        on_release: app.refuse_request(root.username)
+>>>>>>> main
