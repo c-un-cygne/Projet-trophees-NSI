@@ -60,14 +60,16 @@ class InscriptionScreen(Screen):
             c.close()
             return
         curseur.execute("INSERT INTO users (username, password, email) VALUES (?, ?, ?)", (utilisateur, mot_de_passe, emails))
-        c.commit()  
+        c.commit()
+        curseur.execute("SELECT id FROM users WHERE username = ? AND password = ?", (utilisateur, mot_de_passe))
+        resultat = curseur.fetchone()
         c.close()
+        MDApp.get_running_app().Id_Utilisateur = resultat[0]
+        MDApp.get_running_app().root.current = "main"
         self.ids.utilisateur.text = ""
         self.ids.email.text = ""
         self.ids.mot_de_passe.text = ""
         self.ids.mot_de_passe2.text = ""
-        MDApp.get_running_app().root.current = "main"
-
 #pour les tabs de la bar de nav
 class HomeTab(MDBottomNavigationItem):
     pass
@@ -103,10 +105,43 @@ class TropheeNSIApp(MDApp):
         return Builder.load_file("data/res.kv")
     def accept_request(self, username):
         print("Accept:", username)
-
+        c = sqlite3.connect(db_rep)
+        curseur = c.cursor()
+        curseur.execute("SELECT id FROM users WHERE username=?", (username,))
+        userid = curseur.fetchone()[0]
+        curseur.execute("SELECT id FROM friendships WHERE ((friend_id=? AND user_id=?) OR (friend_id=? AND user_id=?)) AND status='pending'", (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur, ))
+        friendship = curseur.fetchone()
+        if friendship:
+            curseur.execute("UPDATE friendships SET status='accepted' WHERE id=?", (friendship[0],))
+            curseur.execute("INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'accepted')", (userid, self.Id_Utilisateur, ))
+            c.commit()
+        c.close()
+        self.refresh_demandes()
     def refuse_request(self, username):
         print("Refuse:", username)
-
+        c = sqlite3.connect(db_rep)
+        curseur = c.cursor()
+        curseur.execute("SELECT id FROM users WHERE username=?", (username,))
+        userid = curseur.fetchone()[0]
+        curseur.execute("SELECT id FROM friendships WHERE ((friend_id=? AND user_id=?) OR (friend_id=? AND user_id=?)) AND status='pending'",(self.Id_Utilisateur, userid, userid, self.Id_Utilisateur))
+        friendship = curseur.fetchone()
+        if friendship:
+            curseur.execute("DELETE FROM friendships WHERE id=?", (friendship[0],))
+            c.commit()
+        c.close()
+        self.refresh_demandes()
+    def refresh_demandes(self):
+        """Recharge la liste des demandes dans le dialog ouvert."""
+        if not self.dialog or not self.dialog.content_cls:
+            return
+        content = self.dialog.content_cls
+        if not isinstance(content, DemandeAmis):
+            return
+        
+        liste_demandes = recupérer_demandes_amis(self.Id_Utilisateur)
+        content.ids.liste_demandes.clear_widgets()
+        for username in liste_demandes:
+            content.ids.liste_demandes.add_widget(ListItemDemandeAmis(username=username))
     def menu_amis(self):
         self.dialog = MDDialog(title="Amis", type="custom",  content_cls=FriendsMenu())
         self.dialog.open()
