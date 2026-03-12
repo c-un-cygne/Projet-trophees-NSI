@@ -3,297 +3,248 @@ ScreenManager:
     MainScreen:
     ConnexionScreen:
     InscriptionScreen:
-<FriendsMenu@MDBoxLayout>:
-    orientation: "vertical"
-    padding: "16dp"
-    spacing: "12dp"
-    size_hint_y: None
-    height: "500dp"
 
-    # ── Mes amis ──────────────────────────
-    MDLabel:
-        text: "Mes amis"
-        font_style: "Subtitle1"
-        bold: True
-        size_hint_y: None
-        height: "28dp"
 
-    ScrollView:
-        size_hint_y: None
-        height: "220dp"
-        MDList:
-            id: liste_amis
-
-    Widget:
-        size_hint_y: None
-        height: "1dp"
-        canvas:
-            Color:
-                rgba: 0.7, 0.7, 0.7, 1
-            Rectangle:
-                pos: self.pos
-                size: self.size
-
-    # ── Ajouter un ami ────────────────────
-    MDLabel:
-        text: "Ajouter un ami"
-        font_style: "Subtitle1"
-        bold: True
-        size_hint_y: None
-        height: "28dp"
-
-    MDTextField:
-        id: nom_amis
-        hint_text: "Nom d'utilisateur"
-        size_hint_y: None
-        height: "45dp"
-
-    MDRaisedButton:
-        text: "Envoyer la demande"
-        size_hint_x: 1          # ← pleine largeur
-        on_release: app.envoyer_demande(nom_amis.text)
-
-    Widget:
-        size_hint_y: None
-        height: "1dp"
-        canvas:
-            Color:
-                rgba: 0.7, 0.7, 0.7, 1
-            Rectangle:
-                pos: self.pos
-                size: self.size
-
-    # ── Voir demandes ─────────────────────
-    MDFlatButton:
-        text: "Voir les demandes reçues"
-        size_hint_x: 1
-        on_release: app.ouvrir_demandes()
 <LoginScreen>:
     name: "login"
+
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     MDBoxLayout:
         orientation: "vertical"
         spacing: "20dp"
         padding: "40dp"
 
         Widget:
-            size_hint_y: 0.1
 
         MDLabel:
             text: "Trophée NSI"
             halign: "center"
             font_style: "H4"
-            bold: True
-            size_hint_y: None
-            height: "50dp"
+            theme_text_color: "Custom"
+            text_color: app.primary
 
         MDLabel:
             text: "Bienvenue sur l'application"
             halign: "center"
-            theme_text_color: "Secondary"
-            size_hint_y: None
-            height: "30dp"
-
-        Widget:
-            size_hint_y: 0.2
 
         MDRaisedButton:
             text: "Se connecter"
             pos_hint: {"center_x": .5}
             size_hint_x: 0.8
+            md_bg_color: app.primary
+            text_color: 1,1,1,1
             on_release:
                 app.root.current = "connexion"
 
         MDFlatButton:
             text: "S'inscrire"
+            theme_text_color: "Custom"
+            text_color: app.secondary
             pos_hint: {"center_x": .5}
-            size_hint_x: 0.8
             on_release:
                 app.root.current = "inscription"
 
         Widget:
-            size_hint_y: 0.1
+
 
 <ConnexionScreen>:
     name: "connexion"
+
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     MDBoxLayout:
         orientation: "vertical"
         spacing: "20dp"
         padding: "40dp"
-
-        Widget:
-            size_hint_y: 0.1
 
         MDLabel:
             text: "Connexion"
             halign: "center"
             font_style: "H5"
-            bold: True
-            size_hint_y: None
-            height: "50dp"
+            theme_text_color: "Custom"
+            text_color: app.primary
 
         MDTextField:
             id: utilisateur
             hint_text: "Nom d'utilisateur"
-            size_hint_x: 0.9
-            pos_hint: {"center_x": .5}
+            line_color_focus: app.primary
 
         MDTextField:
             id: mot_de_passe
             hint_text: "Mot de passe"
             password: True
-            size_hint_x: 0.9
-            pos_hint: {"center_x": .5}
+            line_color_focus: app.primary
+
         MDLabel:
             id: error
             text: ""
             theme_text_color: "Error"
             halign: "center"
-            size_hint_y: None
-            height: "20dp"
-        Widget:
-            size_hint_y: 0.1
 
         MDRaisedButton:
             text: "Se connecter"
+            md_bg_color: app.primary
+            text_color: 1,1,1,1
             pos_hint: {"center_x": .5}
-            size_hint_x: 0.8
             on_release:
                 root.connexion()
-                
 
         MDFlatButton:
             text: "Retour"
+            theme_text_color: "Custom"
+            text_color: app.secondary
             pos_hint: {"center_x": .5}
             on_release:
                 app.root.current = "login"
 
-        Widget:
-            size_hint_y: 0.1
 
 <InscriptionScreen>:
     name: "inscription"
+
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     MDBoxLayout:
         orientation: "vertical"
         spacing: "20dp"
         padding: "40dp"
 
-        Widget:
-            size_hint_y: 0.1
-
         MDLabel:
             text: "Inscription"
             halign: "center"
             font_style: "H5"
-            bold: True
-            size_hint_y: None
-            height: "50dp"
+            theme_text_color: "Custom"
+            text_color: app.primary
 
         MDTextField:
-            id:utilisateur
+            id: utilisateur
             hint_text: "Nom d'utilisateur"
-            size_hint_x: 0.9
-            pos_hint: {"center_x": .5}
+            line_color_focus: app.primary
 
         MDTextField:
-            id:email
+            id: email
             hint_text: "Email"
-            size_hint_x: 0.9
-            pos_hint: {"center_x": .5}
+            line_color_focus: app.primary
 
         MDTextField:
-            id:mot_de_passe
+            id: mot_de_passe
             hint_text: "Mot de passe"
             password: True
-            size_hint_x: 0.9
-            pos_hint: {"center_x": .5}
+            line_color_focus: app.primary
 
         MDTextField:
-            id:mot_de_passe2
+            id: mot_de_passe2
             hint_text: "Confirmer mot de passe"
-
             password: True
-            size_hint_x: 0.9
-            pos_hint: {"center_x": .5}
+            line_color_focus: app.primary
+
         MDLabel:
             id: password_error
             text: ""
             theme_text_color: "Error"
             halign: "center"
-            size_hint_y: None
-            height: "20dp"
-
-        Widget:
-            size_hint_y: 0.1
 
         MDRaisedButton:
             text: "S'inscrire"
+            md_bg_color: app.primary
+            text_color: 1,1,1,1
             pos_hint: {"center_x": .5}
-            size_hint_x: 0.8
             on_release:
                 root.inscription()
 
         MDFlatButton:
             text: "Retour"
+            theme_text_color: "Custom"
+            text_color: app.secondary
             pos_hint: {"center_x": .5}
             on_release:
                 app.root.current = "login"
 
-        Widget:
-            size_hint_y: 0.1
 
 <MainScreen>:
     name: "main"
-    MDBoxLayout:
-        orientation: "vertical"
 
-        MDBottomNavigation:
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
-            HomeTab:
-                name: "home"
-                text: "Accueil"
-                icon: "home"
+    MDBottomNavigation:
+        panel_color: app.primary
+        text_color_active: 1,1,1,1
+        text_color_normal: app.accent
 
-            ProfileTab:
-                name: "profile"
-                text: "Compte"
-                icon: "account"
+        HomeTab:
+            name: "home"
+            text: "Accueil"
+            icon: "home"
 
-            AddTab:
-                name: "add"
-                text: "Ajouter"
-                icon: "plus"
+        ProfileTab:
+            name: "profile"
+            text: "Compte"
+            icon: "account"
 
-            LeaderboardTab:
-                name: "leaderboard"
-                text: "Classement"
-                icon: "trophy"
+        AddTab:
+            name: "add"
+            text: "Ajouter"
+            icon: "plus"
+
+        LeaderboardTab:
+            name: "leaderboard"
+            text: "Classement"
+            icon: "trophy"
+
 
 <HomeTab>:
     FloatLayout:
-        orientation: "vertical"
+
         MDIconButton:
             icon: "account-group"
             pos_hint: {"right": 1, "top": 1}
+            theme_text_color: "Custom"
+            text_color: app.primary
             on_release: app.menu_amis()
-            
+
         MDLabel:
             text: "Page Accueil"
             halign: "center"
 
+
 <ProfileTab>:
     MDBoxLayout:
         orientation: "vertical"
+
         MDLabel:
             text: "Page Compte"
             halign: "center"
+
         MDLabel:
             text: "SALAM ALEJKUM"
             halign: "center"
+
 
 <AddTab>:
     MDLabel:
         text: "Ajouter empreinte"
         halign: "center"
+
 
 <LeaderboardTab>:
     MDLabel:
