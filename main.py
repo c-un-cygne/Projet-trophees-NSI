@@ -13,7 +13,7 @@ from kivymd.uix.list import MDList, OneLineListItem
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineListItem
 from kivy.properties import StringProperty
-
+import time
 
 Window.size = [300, 600]
 rep_base = os.path.dirname(os.path.abspath(__file__))
@@ -87,7 +87,17 @@ class DemandeAmis(MDBoxLayout):
 class ListItemDemandeAmis(MDBoxLayout):
     username = StringProperty()
 
-
+def recupérer_demandes_amis(user_id):
+    c = sqlite3.connect(db_rep)
+    curseur = c.cursor()
+    curseur.execute("""
+        SELECT users.username FROM friendships 
+        JOIN users ON friendships.user_id = users.id 
+        WHERE friendships.friend_id = ? AND friendships.status = 'pending'
+    """, (user_id,))
+    demandes = [i[0] for i in curseur.fetchall()]
+    c.close()
+    return demandes
 class TropheeNSIApp(MDApp):
     def build(self):
         return Builder.load_file("data/res.kv")
@@ -102,7 +112,16 @@ class TropheeNSIApp(MDApp):
         self.dialog.open()
     def menu_demande_amis(self):
         self.dialog.dismiss()
-        self.dialog = MDDialog(title="Demandes", type="custom",  content_cls=DemandeAmis())
+        
+        demande_amis_content = DemandeAmis()
+        
+        liste_demandes = recupérer_demandes_amis(self.Id_Utilisateur)
+        demande_amis_content.ids.liste_demandes.clear_widgets()
+        
+        for username in liste_demandes:
+            demande_amis_content.ids.liste_demandes.add_widget(ListItemDemandeAmis(username=username))
+        
+        self.dialog = MDDialog(title="Demandes", type="custom", content_cls=demande_amis_content)
         self.dialog.open()
     def envoyer_demande(self, username):
         c = sqlite3.connect(db_rep)
@@ -119,7 +138,7 @@ class TropheeNSIApp(MDApp):
         if bonid == self.Id_Utilisateur:
             c.close()
             return
-        curseur.execute("SELECT id FROM friendships WHERE user_id=? AND friend_id=? AND status=pending", (self.Id_Utilisateur, bonid))
+        curseur.execute("SELECT id FROM friendships WHERE user_id=? AND friend_id=? AND status='pending'", (self.Id_Utilisateur, bonid))
         if curseur.fetchone():
             c.close()
             self.dialog.dismiss()
