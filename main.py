@@ -112,8 +112,9 @@ class TropheeNSIApp(MDApp):
         curseur.execute("SELECT id FROM friendships WHERE ((friend_id=? AND user_id=?) OR (friend_id=? AND user_id=?)) AND status='pending'", (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur, ))
         friendship = curseur.fetchone()
         if friendship:
-            curseur.execute("UPDATE friendships SET status='accepted' WHERE id=?", (friendship[0],))
-            curseur.execute("INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'accepted')", (userid, self.Id_Utilisateur, ))
+            for i in friendship:
+                curseur.execute("DELETE FROM friendships WHERE id=?", (i,))
+            curseur.execute("INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'friends')", (userid, self.Id_Utilisateur, ))
             c.commit()
         c.close()
         self.refresh_demandes()
