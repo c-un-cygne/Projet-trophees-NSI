@@ -12,7 +12,7 @@ from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.list import MDList, OneLineListItem
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineListItem
-
+from kivy.properties import StringProperty
 
 
 Window.size = [300, 600]
@@ -82,11 +82,27 @@ class LeaderboardTab(MDBottomNavigationItem):
     pass
 class FriendsMenu(MDBoxLayout):
     pass
+class DemandeAmis(MDBoxLayout):
+    pass
+class ListItemDemandeAmis(MDBoxLayout):
+    username = StringProperty()
+
+
 class TropheeNSIApp(MDApp):
     def build(self):
         return Builder.load_file("data/res.kv")
+    def accept_request(self, username):
+        print("Accept:", username)
+
+    def refuse_request(self, username):
+        print("Refuse:", username)
+
     def menu_amis(self):
         self.dialog = MDDialog(title="Amis", type="custom",  content_cls=FriendsMenu())
+        self.dialog.open()
+    def menu_demande_amis(self):
+        self.dialog.dismiss()
+        self.dialog = MDDialog(title="Demandes", type="custom",  content_cls=DemandeAmis())
         self.dialog.open()
     def envoyer_demande(self, username):
         c = sqlite3.connect(db_rep)
