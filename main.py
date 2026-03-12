@@ -1,3 +1,5 @@
+import sqlite3
+import os
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivy.core.window import Window
@@ -8,12 +10,11 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.list import MDList, OneLineListItem
-from kivy.metrics import dp
-
-import sqlite3
-import os
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineListItem
+
+
+
 Window.size = [300, 600]
 rep_base = os.path.dirname(os.path.abspath(__file__))
 db_rep = os.path.join(rep_base, "data/users.db")
