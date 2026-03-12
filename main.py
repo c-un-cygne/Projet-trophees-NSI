@@ -1,12 +1,16 @@
 import sqlite3
 import os
 from kivymd.app import MDApp
+from kivymd.uix.label import MDLabel
 from kivy.core.window import Window
 from kivy.lang.builder import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.uix.bottomnavigation import MDBottomNavigationItem
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.list import MDList, OneLineListItem
+from kivy.properties import StringProperty
 from kivy.utils import get_color_from_hex
 
 Window.size = [300, 600]
@@ -26,24 +30,21 @@ class MainScreen(Screen):
 class ConnexionScreen(Screen):
 
     def connexion(self):
-
         utilisateur = self.ids.utilisateur.text
         mot_de_passe = self.ids.mot_de_passe.text
 
         c = sqlite3.connect(db_rep)
         curseur = c.cursor()
-
         curseur.execute(
             "SELECT id FROM users WHERE username = ? AND password = ?",
             (utilisateur, mot_de_passe),
         )
-
         resultat = curseur.fetchone()
         c.close()
 
         if resultat:
-            MDApp.get_running_app().root.current = "main"
             MDApp.get_running_app().Id_Utilisateur = resultat[0]
+            MDApp.get_running_app().root.current = "main"
         else:
             self.ids.error.text = "Nom d'utilisateur ou mot de passe incorrect"
 
@@ -51,7 +52,6 @@ class ConnexionScreen(Screen):
 class InscriptionScreen(Screen):
 
     def inscription(self):
-
         utilisateur = self.ids.utilisateur.text
         mot_de_passe = self.ids.mot_de_passe.text
         mot_de_passe2 = self.ids.mot_de_passe2.text
@@ -81,18 +81,25 @@ class InscriptionScreen(Screen):
             "INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
             (utilisateur, mot_de_passe, email),
         )
-
         c.commit()
+
+        curseur.execute(
+            "SELECT id FROM users WHERE username = ? AND password = ?",
+            (utilisateur, mot_de_passe),
+        )
+        resultat = curseur.fetchone()
         c.close()
+
+        MDApp.get_running_app().Id_Utilisateur = resultat[0]
+        MDApp.get_running_app().root.current = "main"
 
         self.ids.utilisateur.text = ""
         self.ids.email.text = ""
         self.ids.mot_de_passe.text = ""
         self.ids.mot_de_passe2.text = ""
 
-        MDApp.get_running_app().root.current = "main"
 
-
+# Tabs de la barre de navigation
 class HomeTab(MDBottomNavigationItem):
     pass
 
@@ -113,10 +120,33 @@ class FriendsMenu(MDBoxLayout):
     pass
 
 
+class DemandeAmis(MDBoxLayout):
+    pass
+
+
+class ListItemDemandeAmis(MDBoxLayout):
+    username = StringProperty()
+
+
+def recuperer_demandes_amis(user_id):
+    c = sqlite3.connect(db_rep)
+    curseur = c.cursor()
+    curseur.execute(
+        """
+        SELECT users.username FROM friendships
+        JOIN users ON friendships.user_id = users.id
+        WHERE friendships.friend_id = ? AND friendships.status = 'pending'
+        """,
+        (user_id,),
+    )
+    demandes = [i[0] for i in curseur.fetchall()]
+    c.close()
+    return demandes
+
+
 class TropheeNSIApp(MDApp):
 
     def build(self):
-
         self.primary = get_color_from_hex("#285430")
         self.secondary = get_color_from_hex("#5F8D4E")
         self.accent = get_color_from_hex("#A4BE7B")
@@ -132,7 +162,6 @@ class TropheeNSIApp(MDApp):
         return Builder.load_file("data/res.kv")
 
     def menu_amis(self):
-
         self.dialog = MDDialog(
             title="Amis",
             type="custom",
@@ -140,8 +169,90 @@ class TropheeNSIApp(MDApp):
         )
         self.dialog.open()
 
-    def envoyer_demande(self, username):
+    def menu_demande_amis(self):
+        self.dialog.dismiss()
 
+        demande_amis_content = DemandeAmis()
+        liste_demandes = recuperer_demandes_amis(self.Id_Utilisateur)
+        demande_amis_content.ids.liste_demandes.clear_widgets()
+
+        for username in liste_demandes:
+            demande_amis_content.ids.liste_demandes.add_widget(
+                ListItemDemandeAmis(username=username)
+            )
+
+        self.dialog = MDDialog(
+            title="Demandes",
+            type="custom",
+            content_cls=demande_amis_content,
+        )
+        self.dialog.open()
+
+    def refresh_demandes(self):
+        """Recharge la liste des demandes dans le dialog ouvert."""
+        if not self.dialog or not self.dialog.content_cls:
+            return
+        content = self.dialog.content_cls
+        if not isinstance(content, DemandeAmis):
+            return
+
+        liste_demandes = recuperer_demandes_amis(self.Id_Utilisateur)
+        content.ids.liste_demandes.clear_widgets()
+        for username in liste_demandes:
+            content.ids.liste_demandes.add_widget(
+                ListItemDemandeAmis(username=username)
+            )
+
+    def accept_request(self, username):
+        c = sqlite3.connect(db_rep)
+        curseur = c.cursor()
+
+        curseur.execute("SELECT id FROM users WHERE username=?", (username,))
+        userid = curseur.fetchone()[0]
+
+        curseur.execute(
+            """SELECT id FROM friendships
+               WHERE ((friend_id=? AND user_id=?) OR (friend_id=? AND user_id=?))
+               AND status='pending'""",
+            (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
+        )
+        friendship = curseur.fetchone()
+
+        if friendship:
+            for i in friendship:
+                curseur.execute("DELETE FROM friendships WHERE id=?", (i,))
+            curseur.execute(
+                "INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'friends')",
+                (userid, self.Id_Utilisateur),
+            )
+            c.commit()
+
+        c.close()
+        self.refresh_demandes()
+
+    def refuse_request(self, username):
+        c = sqlite3.connect(db_rep)
+        curseur = c.cursor()
+
+        curseur.execute("SELECT id FROM users WHERE username=?", (username,))
+        userid = curseur.fetchone()[0]
+
+        curseur.execute(
+            """SELECT id FROM friendships
+               WHERE ((friend_id=? AND user_id=?) OR (friend_id=? AND user_id=?))
+               AND status='pending'""",
+            (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
+        )
+        friendship = curseur.fetchone()
+
+        if friendship:
+            curseur.execute("DELETE FROM friendships WHERE id=?", (friendship[0],))
+            c.commit()
+
+        c.close()
+        self.refresh_demandes()
+
+    def envoyer_demande(self, username):
         c = sqlite3.connect(db_rep)
         curseur = c.cursor()
 
@@ -183,12 +294,10 @@ class TropheeNSIApp(MDApp):
             "INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'pending')",
             (self.Id_Utilisateur, bonid),
         )
-
         c.commit()
         c.close()
 
         self.dialog.dismiss()
-
         self.dialog = MDDialog(
             title="Succès",
             text=f"Demande envoyée à {username}",

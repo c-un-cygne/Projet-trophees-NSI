@@ -5,6 +5,104 @@ ScreenManager:
     InscriptionScreen:
 
 
+<DemandeAmis@MDBoxLayout>:
+    orientation: "vertical"
+    spacing: "12dp"
+    size_hint_y: None
+    height: "500dp"
+
+    MDLabel:
+        text: "Mes Demandes"
+        font_style: "Subtitle1"
+        bold: True
+        theme_text_color: "Custom"
+        text_color: app.primary
+        size_hint_y: None
+        height: "28dp"
+
+    MDScrollView:
+        size_hint: 1, 1
+
+        MDList:
+            id: liste_demandes
+            size_hint_y: None
+            height: self.minimum_height
+
+
+<FriendsMenu@MDBoxLayout>:
+    orientation: "vertical"
+    padding: "16dp"
+    spacing: "12dp"
+    size_hint_y: None
+    height: "500dp"
+
+    MDLabel:
+        text: "Mes amis"
+        font_style: "Subtitle1"
+        bold: True
+        theme_text_color: "Custom"
+        text_color: app.primary
+        size_hint_y: None
+        height: "28dp"
+
+    ScrollView:
+        size_hint_y: None
+        height: "220dp"
+
+        MDList:
+            id: liste_amis
+
+    Widget:
+        size_hint_y: None
+        height: "1dp"
+        canvas:
+            Color:
+                rgba: 0.7, 0.7, 0.7, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    MDLabel:
+        text: "Ajouter un ami"
+        font_style: "Subtitle1"
+        bold: True
+        theme_text_color: "Custom"
+        text_color: app.primary
+        size_hint_y: None
+        height: "28dp"
+
+    MDTextField:
+        id: nom_amis
+        hint_text: "Nom d'utilisateur"
+        line_color_focus: app.primary
+        size_hint_y: None
+        height: "45dp"
+
+    MDRaisedButton:
+        text: "Envoyer la demande"
+        md_bg_color: app.primary
+        text_color: 1,1,1,1
+        size_hint_x: 1
+        on_release: app.envoyer_demande(nom_amis.text)
+
+    Widget:
+        size_hint_y: None
+        height: "1dp"
+        canvas:
+            Color:
+                rgba: 0.7, 0.7, 0.7, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+    MDFlatButton:
+        text: "Voir les demandes reçues"
+        theme_text_color: "Custom"
+        text_color: app.secondary
+        size_hint_x: 1
+        on_release: app.menu_demande_amis()
+
+
 <LoginScreen>:
     name: "login"
 
@@ -250,3 +348,29 @@ ScreenManager:
     MDLabel:
         text: "Leaderboard"
         halign: "center"
+
+
+<ListItemDemandeAmis>:
+    size_hint_y: None
+    height: "56dp"
+    orientation: "horizontal"
+    padding: "8dp"
+    spacing: "8dp"
+
+    MDLabel:
+        text: root.username
+        pos_hint: {"center_y": .5}
+
+    MDIconButton:
+        icon: "check"
+        theme_icon_color: "Custom"
+        icon_color: "green"
+        pos_hint: {"center_y": .5}
+        on_release: app.accept_request(root.username)
+
+    MDIconButton:
+        icon: "close"
+        theme_icon_color: "Custom"
+        icon_color: "red"
+        pos_hint: {"center_y": .5}
+        on_release: app.refuse_request(root.username)
