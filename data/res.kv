@@ -13,6 +13,13 @@ ScreenManager:
     spacing: "12dp"
     size_hint_y: None
     height: "500dp"
+    
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
     MDLabel:
         text: "Mes Demandes"
@@ -38,6 +45,13 @@ ScreenManager:
     spacing: "12dp"
     size_hint_y: None
     height: "500dp"
+    
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
     MDLabel:
         text: "Mes amis"
@@ -314,7 +328,20 @@ ScreenManager:
 
 
 <HomeTab>:
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     FloatLayout:
+        canvas.before:
+            Color:
+                rgba: app.background
+            Rectangle:
+                pos: self.pos
+                size: self.size
 
         MDIconButton:
             icon: "account-group"
@@ -329,26 +356,94 @@ ScreenManager:
 
 
 <ProfileTab>:
+
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     MDBoxLayout:
+        canvas.before:
+            Color:
+                rgba: app.background
+            Rectangle:
+                pos: self.pos
+                size: self.size
         orientation: "vertical"
+        padding: "16dp"
+        spacing: "12dp"
 
         MDLabel:
-            text: "Page Compte"
+            text: "Mon Profil"
             halign: "center"
+            font_style: "H5"
+            theme_text_color: "Custom"
+            text_color: app.primary
 
         MDLabel:
-            text: "SALAM ALEJKUM"
+            text: app.username
             halign: "center"
+            font_style: "H6"
+            theme_text_color: "Custom"
+            text_color: app.secondary
+
+        MDLabel:
+            text: "Mes informations"
+            font_style: "Subtitle1"
+            theme_text_color: "Custom"
+            text_color: app.primary
+            size_hint_y: None
+            height: "32dp"
+
+        MDLabel:
+            text: "Pseudo: {}".format(app.username)
+            theme_text_color: "Custom"
+            text_color: app.secondary
+
+        MDLabel:
+            text: "Email: {}".format(app.email)
+            theme_text_color: "Custom"
+            text_color: app.secondary
 
 
 <AddTab>:
+
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            
     MDLabel:
+        canvas.before:
+            Color:
+                rgba: app.background
+            Rectangle:
+                pos: self.pos
+                size: self.size
         text: "Ajouter empreinte"
         halign: "center"
 
 
 <LeaderboardTab>:
+
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            
     MDLabel:
+        canvas.before:
+            Color:
+                rgba: app.background
+            Rectangle:
+                pos: self.pos
+                size: self.size
         text: "Leaderboard"
         halign: "center"
 

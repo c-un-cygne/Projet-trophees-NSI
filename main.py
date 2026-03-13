@@ -1,5 +1,7 @@
 import sqlite3
 import os
+
+
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivy.core.window import Window
@@ -19,6 +21,27 @@ rep_base = os.path.dirname(os.path.abspath(__file__))
 db_rep = os.path.join(rep_base, "data/users.db")
 
 
+import libsql
+from dotenv import load_dotenv
+load_dotenv("data/data.env")
+
+db_url = os.getenv("TURSO_DATABASE_URL")
+db_token = os.getenv("TURSO_AUTH_TOKEN")
+
+conn = libsql.connect("terragauge",sync_url=db_url, auth_token=db_token)
+
+# Lister toutes les tables disponibles
+tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()
+print("Tables disponibles:", tables)
+
+"""
+client = libsql_client.create_client_sync(url=db_url, auth_token=db_token)
+resultat = client.execute("SQL_QUERY", params).rows
+client.close()
+"""
+
+
+
 class LoginScreen(Screen):
     pass
 
@@ -36,15 +59,19 @@ class ConnexionScreen(Screen):
         c = sqlite3.connect(db_rep)
         curseur = c.cursor()
         curseur.execute(
-            "SELECT id FROM users WHERE username = ? AND password = ?",
+            "SELECT id, email FROM users WHERE username = ? AND password = ?",
             (utilisateur, mot_de_passe),
         )
         resultat = curseur.fetchone()
         c.close()
 
         if resultat:
-            MDApp.get_running_app().Id_Utilisateur = resultat[0]
-            MDApp.get_running_app().root.current = "main"
+            id, email = resultat
+            app = MDApp.get_running_app()
+            app.Id_Utilisateur = id
+            app.username = utilisateur
+            app.email = email
+            app.root.current = "main"
         else:
             self.ids.error.text = "Nom d'utilisateur ou mot de passe incorrect"
 
@@ -57,11 +84,11 @@ class InscriptionScreen(Screen):
         mot_de_passe2 = self.ids.mot_de_passe2.text
 
         if mot_de_passe != mot_de_passe2:
-            self.ids.password_error.text = "Les mots de passe ne correspondent pas"
+            self.ids.password_error.text = "Les mots de passe ne correspondent pas (mets tes lunettes la prochaine fois)"
             return
 
         if len(mot_de_passe) < 6:
-            self.ids.password_error.text = "Le mot de passe doit contenir au moins 6 caractères"
+            self.ids.password_error.text = "Le mot de passe doit contenir au moins 6 caractères (j'ai oublié de te le dire avant, sorry)"
             return
 
         self.ids.password_error.text = ""
@@ -91,6 +118,8 @@ class InscriptionScreen(Screen):
         c.close()
 
         MDApp.get_running_app().Id_Utilisateur = resultat[0]
+        MDApp.get_running_app().username = utilisateur
+        MDApp.get_running_app().email = email
         MDApp.get_running_app().root.current = "main"
 
         self.ids.utilisateur.text = ""
@@ -147,6 +176,8 @@ def recuperer_demandes_amis(user_id):
 
 
 class TropheeNSIApp(MDApp):
+    username = StringProperty("")
+    email = StringProperty("")
 
     def build(self):
         self.primary = get_color_from_hex("#285430")
@@ -167,16 +198,13 @@ class TropheeNSIApp(MDApp):
     def menu_amis(self):
         c = sqlite3.connect(db_rep)
         curseur = c.cursor()
-        curseur.execute(
-            """SELECT users.username FROM friendships
-            JOIN users ON users.id != ?
-            WHERE (friendships.user_id = ? OR friendships.friend_id = ?)
-            AND friendships.status = 'friends'""",
-            (self.Id_Utilisateur, self.Id_Utilisateur, self.Id_Utilisateur),
-        )
-        amis = [row[0] for row in curseur.fetchall()]
-        c.close()
+        curseur.execute("SELECT username FROM friendships JOIN users ON friendships.friend_id = users.id WHERE friendships.user_id=? AND friendships.status='friends'", (self.Id_Utilisateur,))
 
+        amis = [row[0] for row in curseur.fetchall()]
+        curseur.execute("SELECT username FROM friendships JOIN users ON friendships.user_id = users.id WHERE friendships.friend_id=? AND friendships.status='friends'", (self.Id_Utilisateur,))
+        amis += [row[0] for row in curseur.fetchall()]
+        c.close()
+        
         friends_menu = FriendsMenu()
         friends_menu.ids.liste_amis.clear_widgets()
         for username in amis:
@@ -186,6 +214,7 @@ class TropheeNSIApp(MDApp):
             title="Amis",
             type="custom",
             content_cls=friends_menu,
+            md_bg_color=self.background,
         )
         self.dialog.open()
     def menu_demande_amis(self):
@@ -204,11 +233,14 @@ class TropheeNSIApp(MDApp):
             title="Demandes",
             type="custom",
             content_cls=demande_amis_content,
+            md_bg_color=self.background,
         )
         self.dialog.open()
 
     def refresh_demandes(self):
         """Recharge la liste des demandes dans le dialog ouvert."""
+        
+        
         if not self.dialog or not self.dialog.content_cls:
             return
         content = self.dialog.content_cls
@@ -235,7 +267,7 @@ class TropheeNSIApp(MDApp):
                AND status='pending'""",
             (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
         )
-        friendship = curseur.fetchone()
+        friendship = curseur.fetchall()
 
         if friendship:
             for i in friendship:
@@ -331,7 +363,7 @@ class TropheeNSIApp(MDApp):
 
         curseur.execute(
             """DELETE FROM friendships
-            WHERE (user_id=? AND friend_id=?) OR (user_id=? AND friend_id=?)
+            WHERE ((user_id=? AND friend_id=?) OR (user_id=? AND friend_id=?))
             AND status='friends'""",
             (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
         )
