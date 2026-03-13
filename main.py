@@ -3,6 +3,7 @@ from kivymd.uix.label import MDLabel
 from kivy.core.window import Window
 from kivy.lang.builder import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
+from kivy.clock import Clock
 from kivymd.uix.bottomnavigation import MDBottomNavigationItem
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -16,7 +17,7 @@ import libsql
 from dotenv import load_dotenv
 
 rep_base = os.path.dirname(os.path.abspath(__file__))
-load_dotenv(os.path.join(rep_base, "data/data.env"))
+load_dotenv(os.path.join(rep_base, ".gitignore/data.env"))
 
 db_url = os.getenv("TURSO_DATABASE_URL")
 db_token = os.getenv("TURSO_AUTH_TOKEN")
@@ -55,6 +56,8 @@ class ConnexionScreen(Screen):
             app.username = utilisateur
             app.email = email
             app.root.current = "main"
+            # S'assurer que l'utilisateur arrive sur l'onglet Accueil (après construction de l'interface)
+            Clock.schedule_once(lambda dt: app.go_home_tab(), 0)
         else:
             self.ids.error.text = "Nom d'utilisateur ou mot de passe incorrect"
 
@@ -103,6 +106,8 @@ class InscriptionScreen(Screen):
         MDApp.get_running_app().username = utilisateur
         MDApp.get_running_app().email = email
         MDApp.get_running_app().root.current = "main"
+        # S'assurer que l'utilisateur arrive sur l'onglet Accueil (après construction de l'interface)
+        Clock.schedule_once(lambda dt: MDApp.get_running_app().go_home_tab(), 0)
 
         self.ids.utilisateur.text = ""
         self.ids.email.text = ""
@@ -157,7 +162,7 @@ def recuperer_demandes_amis(user_id):
     return [i[0] for i in demandes]
 
 
-class TropheeNSIApp(MDApp):
+class TerraGaugeApp(MDApp):
     username = StringProperty("")
     email = StringProperty("")
     Id_Utilisateur = None
@@ -177,6 +182,14 @@ class TropheeNSIApp(MDApp):
         kv.transition.clearcolor = self.background
         Window.clearcolor = self.background
         return kv
+
+    def go_home_tab(self):
+        """Force l'onglet de navigation inférieur sur 'Accueil' (home)."""
+        try:
+            main_screen = self.root.get_screen("main")
+            main_screen.ids.bottom_nav.current = "home"
+        except Exception:
+            pass
 
     def menu_amis(self):
         conn = get_conn()
@@ -390,8 +403,24 @@ class TropheeNSIApp(MDApp):
 
         # Retour à l'écran de connexion
         if self.root:
+            # Réinitialise l'écran de connexion
+            try:
+                connexion_screen = self.root.get_screen("connexion")
+                connexion_screen.ids.utilisateur.text = ""
+                connexion_screen.ids.mot_de_passe.text = ""
+                connexion_screen.ids.error.text = ""
+            except Exception:
+                pass
+
+            # Réinitialise l'onglet principal pour que l'utilisateur arrive sur Accueil
+            try:
+                main_screen = self.root.get_screen("main")
+                main_screen.ids.bottom_nav.current = "home"
+            except Exception:
+                pass
+
             self.root.current = "login"
 
 
 if __name__ == "__main__":
-    TropheeNSIApp().run()
+    TerraGaugeApp().run()

@@ -138,7 +138,7 @@ ScreenManager:
         Widget:
 
         MDLabel:
-            text: "Trophée NSI"
+            text: "TerraGauge"
             halign: "center"
             font_style: "H4"
             theme_text_color: "Custom"
@@ -302,6 +302,8 @@ ScreenManager:
             size: self.size
 
     MDBottomNavigation:
+        id: bottom_nav
+        current: "home"
         panel_color: app.primary
         text_color_active: 1,1,1,1
         text_color_normal: app.accent
