@@ -407,6 +407,13 @@ ScreenManager:
             theme_text_color: "Custom"
             text_color: app.secondary
 
+        MDFlatButton:
+            text: "Se déconnecter"
+            theme_text_color: "Custom"
+            text_color: app.primary
+            pos_hint: {"center_x": .5}
+            on_release: app.deconnexion()
+
 
 <AddTab>:
 
