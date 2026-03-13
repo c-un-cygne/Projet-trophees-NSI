@@ -1,0 +1,50 @@
+<ListItemDemandeAmis>:
+    size_hint_y: None
+    height: "56dp"
+    orientation: "horizontal"
+    padding: "8dp"
+    spacing: "8dp"
+
+    MDLabel:
+        text: root.username
+        pos_hint: {"center_y": .5}
+
+    MDIconButton:
+        icon: "check"
+        theme_icon_color: "Custom"
+        icon_color: "green"
+        pos_hint: {"center_y": .5}
+        on_release: app.accept_request(root.username)
+
+    MDIconButton:
+        icon: "close"
+        theme_icon_color: "Custom"
+        icon_color: "red"
+        pos_hint: {"center_y": .5}
+        on_release: app.refuse_request(root.username)
+
+
+<ListItemAmis>:
+    size_hint_y: None
+    height: "56dp"
+    orientation: "horizontal"
+    padding: "8dp"
+    spacing: "8dp"
+
+    MDIconButton:
+        icon: "account"
+        theme_icon_color: "Custom"
+        icon_color: app.primary
+        pos_hint: {"center_y": .5}
+        on_release: app.voir_profil(root.username)
+
+    MDLabel:
+        text: root.username
+        pos_hint: {"center_y": .5}
+
+    MDIconButton:
+        icon: "account-remove"
+        theme_icon_color: "Custom"
+        icon_color: "red"
+        pos_hint: {"center_y": .5}
+        on_release: app.supprimer_ami(root.username)

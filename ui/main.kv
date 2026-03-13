@@ -1,0 +1,82 @@
+<MainScreen>:
+    name: "main"
+
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    MDBottomNavigation:
+        id: bottom_nav
+        panel_color: app.primary
+        text_color_active: 1,1,1,1
+        text_color_normal: app.accent
+
+        HomeTab:
+            name: "home"
+            text: "Accueil"
+            icon: "home"
+
+        ProfileTab:
+            name: "profile"
+            text: "Compte"
+            icon: "account"
+
+        AddTab:
+            name: "add"
+            text: "Ajouter"
+            icon: "plus"
+
+        LeaderboardTab:
+            name: "leaderboard"
+            text: "Classement"
+            icon: "trophy"
+
+
+<HomeTab>:
+    FloatLayout:
+
+        MDIconButton:
+            icon: "account-group"
+            pos_hint: {"right": 1, "top": 1}
+            theme_text_color: "Custom"
+            text_color: app.primary
+            on_release: app.menu_amis()
+
+        MDLabel:
+            text: "Page Accueil"
+            halign: "center"
+
+
+<ProfileTab>:
+    MDBoxLayout:
+        orientation: "vertical"
+
+        MDLabel:
+            text: "Page Compte"
+            halign: "center"
+
+        MDLabel:
+            text: "SALAM ALEJKUM"
+            halign: "center"
+
+        MDRaisedButton:
+            text: "Se déconnecter"
+            md_bg_color: app.primary
+            text_color: 1,1,1,1
+            pos_hint: {"center_x": .5}
+            on_release: app.deconnexion()
+
+
+<AddTab>:
+    MDLabel:
+        text: "Ajouter empreinte"
+        halign: "center"
+
+
+<LeaderboardTab>:
+    MDLabel:
+        text: "Leaderboard"
+        halign: "center"
