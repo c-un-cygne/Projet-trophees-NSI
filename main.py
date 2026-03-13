@@ -1,7 +1,3 @@
-import sqlite3
-import os
-
-
 from kivymd.app import MDApp
 from kivymd.uix.label import MDLabel
 from kivy.core.window import Window
@@ -15,32 +11,21 @@ from kivymd.uix.list import MDList, OneLineListItem
 from kivy.properties import StringProperty
 from kivy.utils import get_color_from_hex
 
-Window.size = [300, 600]
-
-rep_base = os.path.dirname(os.path.abspath(__file__))
-db_rep = os.path.join(rep_base, "data/users.db")
-
-
+import os
 import libsql
 from dotenv import load_dotenv
-load_dotenv("data/data.env")
+
+rep_base = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(rep_base, "data/data.env"))
 
 db_url = os.getenv("TURSO_DATABASE_URL")
 db_token = os.getenv("TURSO_AUTH_TOKEN")
 
-conn = libsql.connect(database=db_url, auth_token=db_token)
-
-# Lister toutes les tables disponibles
-tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()
-print("Tables disponibles:", tables)
-
-"""
-client = libsql_client.create_client_sync(url=db_url, auth_token=db_token)
-resultat = client.execute("SQL_QUERY", params).rows
-client.close()
-"""
+def get_conn():
+    return libsql.connect(database=db_url, auth_token=db_token)
 
 
+Window.size = [300, 600]
 
 class LoginScreen(Screen):
     pass
@@ -56,14 +41,12 @@ class ConnexionScreen(Screen):
         utilisateur = self.ids.utilisateur.text
         mot_de_passe = self.ids.mot_de_passe.text
 
-        c = sqlite3.connect(db_rep)
-        curseur = c.cursor()
-        curseur.execute(
+        conn = get_conn()
+        resultat = conn.execute(
             "SELECT id, email FROM users WHERE username = ? AND password = ?",
             (utilisateur, mot_de_passe),
-        )
-        resultat = curseur.fetchone()
-        c.close()
+        ).fetchone()
+        conn.close()
 
         if resultat:
             id, email = resultat
@@ -92,30 +75,29 @@ class InscriptionScreen(Screen):
             return
 
         self.ids.password_error.text = ""
-
         email = self.ids.email.text
 
-        c = sqlite3.connect(db_rep)
-        curseur = c.cursor()
+        conn = get_conn()
 
-        curseur.execute("SELECT id FROM users WHERE username=?", (utilisateur,))
-        if curseur.fetchone():
+        existing = conn.execute(
+            "SELECT id FROM users WHERE username=?", (utilisateur,)
+        ).fetchone()
+        if existing:
             self.ids.password_error.text = "Nom d'utilisateur déjà utilisé"
-            c.close()
+            conn.close()
             return
 
-        curseur.execute(
+        conn.execute(
             "INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
             (utilisateur, mot_de_passe, email),
         )
-        c.commit()
+        conn.commit()
 
-        curseur.execute(
+        resultat = conn.execute(
             "SELECT id FROM users WHERE username = ? AND password = ?",
             (utilisateur, mot_de_passe),
-        )
-        resultat = curseur.fetchone()
-        c.close()
+        ).fetchone()
+        conn.close()
 
         MDApp.get_running_app().Id_Utilisateur = resultat[0]
         MDApp.get_running_app().username = utilisateur
@@ -156,28 +138,29 @@ class DemandeAmis(MDBoxLayout):
 class ListItemDemandeAmis(MDBoxLayout):
     username = StringProperty()
 
+
 class ListItemAmis(MDBoxLayout):
     username = StringProperty()
 
+
 def recuperer_demandes_amis(user_id):
-    c = sqlite3.connect(db_rep)
-    curseur = c.cursor()
-    curseur.execute(
+    conn = get_conn()
+    demandes = conn.execute(
         """
         SELECT users.username FROM friendships
         JOIN users ON friendships.user_id = users.id
         WHERE friendships.friend_id = ? AND friendships.status = 'pending'
         """,
         (user_id,),
-    )
-    demandes = [i[0] for i in curseur.fetchall()]
-    c.close()
-    return demandes
+    ).fetchall()
+    conn.close()
+    return [i[0] for i in demandes]
 
 
 class TropheeNSIApp(MDApp):
     username = StringProperty("")
     email = StringProperty("")
+    Id_Utilisateur = None
 
     def build(self):
         self.primary = get_color_from_hex("#285430")
@@ -196,19 +179,21 @@ class TropheeNSIApp(MDApp):
         return kv
 
     def menu_amis(self):
-        c = sqlite3.connect(db_rep)
-        curseur = c.cursor()
-        curseur.execute("SELECT username FROM friendships JOIN users ON friendships.friend_id = users.id WHERE friendships.user_id=? AND friendships.status='friends'", (self.Id_Utilisateur,))
+        conn = get_conn()
+        amis = conn.execute(
+            "SELECT username FROM friendships JOIN users ON friendships.friend_id = users.id WHERE friendships.user_id=? AND friendships.status='friends'",
+            (self.Id_Utilisateur,)
+        ).fetchall()
+        amis += conn.execute(
+            "SELECT username FROM friendships JOIN users ON friendships.user_id = users.id WHERE friendships.friend_id=? AND friendships.status='friends'",
+            (self.Id_Utilisateur,)
+        ).fetchall()
+        conn.close()
 
-        amis = [row[0] for row in curseur.fetchall()]
-        curseur.execute("SELECT username FROM friendships JOIN users ON friendships.user_id = users.id WHERE friendships.friend_id=? AND friendships.status='friends'", (self.Id_Utilisateur,))
-        amis += [row[0] for row in curseur.fetchall()]
-        c.close()
-        
         friends_menu = FriendsMenu()
         friends_menu.ids.liste_amis.clear_widgets()
-        for username in amis:
-            friends_menu.ids.liste_amis.add_widget(ListItemAmis(username=username))
+        for row in amis:
+            friends_menu.ids.liste_amis.add_widget(ListItemAmis(username=row[0]))
 
         self.dialog = MDDialog(
             title="Amis",
@@ -217,6 +202,7 @@ class TropheeNSIApp(MDApp):
             md_bg_color=self.background,
         )
         self.dialog.open()
+
     def menu_demande_amis(self):
         self.dialog.dismiss()
 
@@ -238,9 +224,6 @@ class TropheeNSIApp(MDApp):
         self.dialog.open()
 
     def refresh_demandes(self):
-        """Recharge la liste des demandes dans le dialog ouvert."""
-        
-        
         if not self.dialog or not self.dialog.content_cls:
             return
         content = self.dialog.content_cls
@@ -250,68 +233,88 @@ class TropheeNSIApp(MDApp):
         liste_demandes = recuperer_demandes_amis(self.Id_Utilisateur)
         content.ids.liste_demandes.clear_widgets()
         for username in liste_demandes:
-            content.ids.liste_demandes.add_widget(
-                ListItemDemandeAmis(username=username)
-            )
+            content.ids.liste_demandes.add_widget(ListItemDemandeAmis(username=username))
+
+    def refresh_amis(self):
+        if not self.dialog or not self.dialog.content_cls:
+            return
+        content = self.dialog.content_cls
+        if not isinstance(content, FriendsMenu):
+            return
+
+        conn = get_conn()
+        amis = conn.execute(
+            "SELECT username FROM friendships JOIN users ON friendships.friend_id = users.id WHERE friendships.user_id=? AND friendships.status='friends'",
+            (self.Id_Utilisateur,)
+        ).fetchall()
+        amis += conn.execute(
+            "SELECT username FROM friendships JOIN users ON friendships.user_id = users.id WHERE friendships.friend_id=? AND friendships.status='friends'",
+            (self.Id_Utilisateur,)
+        ).fetchall()
+        conn.close()
+
+        content.ids.liste_amis.clear_widgets()
+        for row in amis:
+            content.ids.liste_amis.add_widget(ListItemAmis(username=row[0]))
 
     def accept_request(self, username):
-        c = sqlite3.connect(db_rep)
-        curseur = c.cursor()
+        conn = get_conn()
 
-        curseur.execute("SELECT id FROM users WHERE username=?", (username,))
-        userid = curseur.fetchone()[0]
+        userid_row = conn.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
+        if not userid_row:
+            conn.close()
+            return
+        userid = userid_row[0]
 
-        curseur.execute(
+        friendships = conn.execute(
             """SELECT id FROM friendships
                WHERE ((friend_id=? AND user_id=?) OR (friend_id=? AND user_id=?))
                AND status='pending'""",
             (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
-        )
-        friendship = curseur.fetchall()
+        ).fetchall()
 
-        if friendship:
-            for i in friendship:
-                curseur.execute("DELETE FROM friendships WHERE id=?", (i,))
-            curseur.execute(
+        if friendships:
+            for row in friendships:
+                conn.execute("DELETE FROM friendships WHERE id=?", (row[0],))
+            conn.execute(
                 "INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'friends')",
                 (userid, self.Id_Utilisateur),
             )
-            c.commit()
+            conn.commit()
 
-        c.close()
+        conn.close()
         self.refresh_demandes()
 
     def refuse_request(self, username):
-        c = sqlite3.connect(db_rep)
-        curseur = c.cursor()
+        conn = get_conn()
 
-        curseur.execute("SELECT id FROM users WHERE username=?", (username,))
-        userid = curseur.fetchone()[0]
+        userid_row = conn.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
+        if not userid_row:
+            conn.close()
+            return
+        userid = userid_row[0]
 
-        curseur.execute(
+        friendship = conn.execute(
             """SELECT id FROM friendships
                WHERE ((friend_id=? AND user_id=?) OR (friend_id=? AND user_id=?))
                AND status='pending'""",
             (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
-        )
-        friendship = curseur.fetchone()
+        ).fetchone()
 
         if friendship:
-            curseur.execute("DELETE FROM friendships WHERE id=?", (friendship[0],))
-            c.commit()
+            conn.execute("DELETE FROM friendships WHERE id=?", (friendship[0],))
+            conn.commit()
 
-        c.close()
+        conn.close()
         self.refresh_demandes()
 
     def envoyer_demande(self, username):
-        c = sqlite3.connect(db_rep)
-        curseur = c.cursor()
+        conn = get_conn()
 
-        curseur.execute("SELECT id FROM users WHERE username=?", (username,))
-        user = curseur.fetchone()
+        user = conn.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
 
         if user is None:
-            c.close()
+            conn.close()
             self.dialog.dismiss()
             self.dialog = MDDialog(
                 title="Erreur",
@@ -323,56 +326,72 @@ class TropheeNSIApp(MDApp):
         bonid = user[0]
 
         if bonid == self.Id_Utilisateur:
-            c.close()
+            conn.close()
             return
 
-        curseur.execute(
+        deja = conn.execute(
             "SELECT id FROM friendships WHERE user_id=? AND friend_id=? AND status='pending'",
             (self.Id_Utilisateur, bonid),
-        )
+        ).fetchone()
 
-        if curseur.fetchone():
-            c.close()
+        if deja:
+            conn.close()
             self.dialog.dismiss()
-            self.dialog = MDDialog(
-                title="Soucis",
-                text="Demande déjà envoyée",
-            )
+            self.dialog = MDDialog(title="Soucis", text="Demande déjà envoyée")
             self.dialog.open()
             return
 
-        curseur.execute(
+        conn.execute(
             "INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'pending')",
             (self.Id_Utilisateur, bonid),
         )
-        c.commit()
-        c.close()
+        conn.commit()
+        conn.close()
 
         self.dialog.dismiss()
-        self.dialog = MDDialog(
-            title="Succès",
-            text=f"Demande envoyée à {username}",
-        )
+        self.dialog = MDDialog(title="Succès", text=f"Demande envoyée à {username}")
         self.dialog.open()
+
     def supprimer_ami(self, username):
-        c = sqlite3.connect(db_rep)
-        curseur = c.cursor()
+        conn = get_conn()
 
-        curseur.execute("SELECT id FROM users WHERE username=?", (username,))
-        userid = curseur.fetchone()[0]
+        userid_row = conn.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
+        if not userid_row:
+            conn.close()
+            return
+        userid = userid_row[0]
 
-        curseur.execute(
+        conn.execute(
             """DELETE FROM friendships
             WHERE ((user_id=? AND friend_id=?) OR (user_id=? AND friend_id=?))
             AND status='friends'""",
             (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
         )
-        c.commit()
-        c.close()
-        self.refresh_amis() 
+        conn.commit()
+        conn.close()
+        self.refresh_amis()
 
     def voir_profil(self, username):
-        pass #tkt on code ça biennnn plus tard
+        pass  # à coder plus tard
+
+    def deconnexion(self):
+        """Déconnecte l'utilisateur et revient à l'écran de connexion."""
+        # Réinitialise les données utilisateur
+        self.Id_Utilisateur = None
+        self.username = ""
+        self.email = ""
+
+        # Ferme les dialogues ouverts le cas échéant
+        if hasattr(self, "dialog") and self.dialog:
+            try:
+                self.dialog.dismiss()
+            except Exception:
+                pass
+
+        # Retour à l'écran de connexion
+        if self.root:
+            self.root.current = "login"
+
 
 if __name__ == "__main__":
     TropheeNSIApp().run()
