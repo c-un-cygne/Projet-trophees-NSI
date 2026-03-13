@@ -28,7 +28,7 @@ load_dotenv("data/data.env")
 db_url = os.getenv("TURSO_DATABASE_URL")
 db_token = os.getenv("TURSO_AUTH_TOKEN")
 
-conn = libsql.connect("terragauge",sync_url=db_url, auth_token=db_token)
+conn = libsql.connect(database=db_url, auth_token=db_token)
 
 # Lister toutes les tables disponibles
 tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()
