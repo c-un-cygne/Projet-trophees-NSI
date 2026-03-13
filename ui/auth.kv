@@ -1,0 +1,169 @@
+<LoginScreen>:
+    name: "login"
+
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: "20dp"
+        padding: "40dp"
+
+        Widget:
+
+        MDLabel:
+            text: "Trophée NSI"
+            halign: "center"
+            font_style: "H4"
+            theme_text_color: "Custom"
+            text_color: app.primary
+
+        MDLabel:
+            text: "Bienvenue sur l'application"
+            halign: "center"
+
+        MDRaisedButton:
+            text: "Se connecter"
+            pos_hint: {"center_x": .5}
+            size_hint_x: 0.8
+            md_bg_color: app.primary
+            text_color: 1,1,1,1
+            on_release:
+                app.root.current = "connexion"
+
+        MDFlatButton:
+            text: "S'inscrire"
+            theme_text_color: "Custom"
+            text_color: app.secondary
+            pos_hint: {"center_x": .5}
+            on_release:
+                app.root.current = "inscription"
+
+        Widget:
+
+
+<ConnexionScreen>:
+    name: "connexion"
+
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: "20dp"
+        padding: "40dp"
+
+        MDLabel:
+            text: "Connexion"
+            halign: "center"
+            font_style: "H5"
+            theme_text_color: "Custom"
+            text_color: app.primary
+
+        MDTextField:
+            id: utilisateur
+            hint_text: "Nom d'utilisateur"
+            line_color_focus: app.primary
+
+        MDTextField:
+            id: mot_de_passe
+            hint_text: "Mot de passe"
+            password: True
+            line_color_focus: app.primary
+
+        MDLabel:
+            id: error
+            text: ""
+            theme_text_color: "Error"
+            halign: "center"
+
+        MDRaisedButton:
+            text: "Se connecter"
+            md_bg_color: app.primary
+            text_color: 1,1,1,1
+            pos_hint: {"center_x": .5}
+            on_release:
+                root.connexion()
+
+        MDFlatButton:
+            text: "Retour"
+            theme_text_color: "Custom"
+            text_color: app.secondary
+            pos_hint: {"center_x": .5}
+            on_release:
+                app.root.current = "login"
+
+
+<InscriptionScreen>:
+    name: "inscription"
+
+    canvas.before:
+        Color:
+            rgba: app.background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: "20dp"
+        padding: "40dp"
+
+        MDLabel:
+            text: "Inscription"
+            halign: "center"
+            font_style: "H5"
+            theme_text_color: "Custom"
+            text_color: app.primary
+
+        MDTextField:
+            id: utilisateur
+            hint_text: "Nom d'utilisateur"
+            line_color_focus: app.primary
+
+        MDTextField:
+            id: email
+            hint_text: "Email"
+            line_color_focus: app.primary
+
+        MDTextField:
+            id: mot_de_passe
+            hint_text: "Mot de passe"
+            password: True
+            line_color_focus: app.primary
+
+        MDTextField:
+            id: mot_de_passe2
+            hint_text: "Confirmer mot de passe"
+            password: True
+            line_color_focus: app.primary
+
+        MDLabel:
+            id: password_error
+            text: ""
+            theme_text_color: "Error"
+            halign: "center"
+
+        MDRaisedButton:
+            text: "S'inscrire"
+            md_bg_color: app.primary
+            text_color: 1,1,1,1
+            pos_hint: {"center_x": .5}
+            on_release:
+                root.inscription()
+
+        MDFlatButton:
+            text: "Retour"
+            theme_text_color: "Custom"
+            text_color: app.secondary
+            pos_hint: {"center_x": .5}
+            on_release:
+                app.root.current = "login"
