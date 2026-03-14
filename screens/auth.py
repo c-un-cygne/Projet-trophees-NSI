@@ -28,8 +28,9 @@ class ConnexionScreen(Screen):
             app.Id_Utilisateur = id
             app.username = utilisateur
             app.email = email
+            app.update_friends_count()
             app.root.current = "main"
-            Clock.schedule_once(lambda dt: app.go_home_tab(), 0)
+            Clock.schedule_once(lambda dt: app.go_home_tab(), 1.0)
         else:
             self.ids.error.text = "Nom d'utilisateur ou mot de passe incorrect"
 
@@ -78,8 +79,9 @@ class InscriptionScreen(Screen):
         app.Id_Utilisateur = resultat[0]
         app.username = utilisateur
         app.email = email
+        app.update_friends_count()
         app.root.current = "main"
-        Clock.schedule_once(lambda dt: app.go_home_tab(), 0)
+        Clock.schedule_once(lambda dt: app.go_home_tab(), 1.0)
 
         self.ids.utilisateur.text = ""
         self.ids.email.text = ""

@@ -19,11 +19,6 @@
             text: "Accueil"
             icon: "home"
 
-        ProfileTab:
-            name: "profile"
-            text: "Compte"
-            icon: "account"
-
         AddTab:
             name: "add"
             text: "Ajouter"
@@ -33,6 +28,11 @@
             name: "leaderboard"
             text: "Classement"
             icon: "trophy"
+
+        ProfileTab:
+            name: "profile"
+            text: "Compte"
+            icon: "account"
 
 
 <HomeTab>:
@@ -69,23 +69,106 @@
                 pos: self.pos
                 size: self.size
 
-
         orientation: "vertical"
+        padding: "20dp"
+        spacing: "20dp"
 
+        # Titre
         MDLabel:
-            text: "Page Compte"
+            text: "Mon Profil"
+            theme_text_color: "Custom"
+            text_color: app.primary
+            font_style: "H5"
             halign: "center"
+            size_hint_y: None
+            height: "50dp"
 
-        MDLabel:
-            text: "SALAM ALEJKUM"
-            halign: "center"
-
+        # Bouton déconnecter en haut
         MDRaisedButton:
             text: "Se déconnecter"
             md_bg_color: app.primary
             text_color: 1,1,1,1
-            pos_hint: {"center_x": .5}
+            size_hint_x: 1
             on_release: app.deconnexion()
+
+        # Carte profil
+        MDCard:
+            orientation: "vertical"
+            padding: "20dp"
+            spacing: "15dp"
+            md_bg_color: app.background
+            elevation: 1
+            size_hint_y: None
+            height: "280dp"
+
+            # Nom d'utilisateur
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: "70dp"
+                spacing: "5dp"
+
+                MDLabel:
+                    text: "Nom d'utilisateur"
+                    theme_text_color: "Hint"
+                    font_size: "12sp"
+                    size_hint_y: None
+                    height: "20dp"
+
+                MDLabel:
+                    text: app.username
+                    theme_text_color: "Custom"
+                    text_color: app.primary
+                    font_style: "H6"
+                    size_hint_y: None
+                    height: "30dp"
+
+            # Email
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: "70dp"
+                spacing: "5dp"
+
+                MDLabel:
+                    text: "Email"
+                    theme_text_color: "Hint"
+                    font_size: "12sp"
+                    size_hint_y: None
+                    height: "20dp"
+
+                MDLabel:
+                    text: app.email
+                    theme_text_color: "Custom"
+                    text_color: app.secondary
+                    font_size: "13sp"
+                    size_hint_y: None
+                    height: "30dp"
+
+            # Nombre d'amis
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: "70dp"
+                spacing: "5dp"
+
+                MDLabel:
+                    text: "Nombre d'amis"
+                    theme_text_color: "Hint"
+                    font_size: "12sp"
+                    size_hint_y: None
+                    height: "20dp"
+
+                MDLabel:
+                    text: app.friends_count
+                    theme_text_color: "Custom"
+                    text_color: app.accent
+                    font_style: "H6"
+                    size_hint_y: None
+                    height: "30dp"
+
+        # Espace flexible pour pousser le contenu vers le haut
+        Widget:
 
 
 <AddTab>:
