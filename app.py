@@ -19,6 +19,7 @@ Window.size = [300, 600]
 class TerraGaugeApp(FriendsMixin, MDApp):
     username = StringProperty("")
     email = StringProperty("")
+    friends_count = StringProperty("0")
     Id_Utilisateur = None
 
     def build(self):
@@ -44,14 +45,37 @@ class TerraGaugeApp(FriendsMixin, MDApp):
     def go_home_tab(self):
         try:
             main_screen = self.root.get_screen("main")
-            main_screen.ids.bottom_nav.current = "home"
-        except Exception:
-            pass
+            if hasattr(main_screen, 'ids') and hasattr(main_screen.ids, 'bottom_nav'):
+                main_screen.ids.bottom_nav.current = "home"
+        except Exception as e:
+            print(f"Erreur go_home_tab: {e}")
+
+    def update_friends_count(self):
+        """Met à jour le nombre d'amis de l'utilisateur"""
+        if self.Id_Utilisateur:
+            try:
+                from db import get_conn
+                conn = get_conn()
+                # Récupérer les amis où l'utilisateur est l'initiateur
+                amis1 = conn.execute(
+                    "SELECT COUNT(*) FROM friendships WHERE user_id=? AND status='friends'",
+                    (self.Id_Utilisateur,),
+                ).fetchone()[0]
+                # Récupérer les amis où l'utilisateur est le destinataire
+                amis2 = conn.execute(
+                    "SELECT COUNT(*) FROM friendships WHERE friend_id=? AND status='friends'",
+                    (self.Id_Utilisateur,),
+                ).fetchone()[0]
+                conn.close()
+                self.friends_count = str(amis1 + amis2)
+            except Exception:
+                self.friends_count = "0"
 
     def deconnexion(self):
         self.Id_Utilisateur = None
         self.username = ""
         self.email = ""
+        self.friends_count = "0"
 
         if hasattr(self, "dialog") and self.dialog:
             try:
@@ -60,6 +84,13 @@ class TerraGaugeApp(FriendsMixin, MDApp):
                 pass
 
         if self.root:
+            try:
+                main_screen = self.root.get_screen("main")
+                if hasattr(main_screen, 'ids') and hasattr(main_screen.ids, 'bottom_nav'):
+                    main_screen.ids.bottom_nav.current = "home"
+            except Exception:
+                pass
+            
             try:
                 connexion_screen = self.root.get_screen("connexion")
                 connexion_screen.ids.utilisateur.text = ""
