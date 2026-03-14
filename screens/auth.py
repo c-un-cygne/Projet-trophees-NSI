@@ -1,7 +1,7 @@
 from kivy.uix.screenmanager import Screen
 from kivy.clock import Clock
 from kivymd.app import MDApp
-
+import bcrypt
 from db import get_conn
 
 
@@ -17,13 +17,13 @@ class ConnexionScreen(Screen):
 
         conn = get_conn()
         resultat = conn.execute(
-            "SELECT id, email FROM users WHERE username = ? AND password = ?",
-            (utilisateur, mot_de_passe),
+            "SELECT id, email, password FROM users WHERE username = ?",
+            (utilisateur,),
         ).fetchone()
         conn.close()
 
-        if resultat:
-            id, email = resultat
+        if resultat and bcrypt.checkpw(mot_de_passe.encode("utf-8"), resultat[2].encode("utf-8")):
+            id, email, _ = resultat
             app = MDApp.get_running_app()
             app.Id_Utilisateur = id
             app.username = utilisateur
@@ -51,7 +51,8 @@ class InscriptionScreen(Screen):
 
         self.ids.password_error.text = ""
         email = self.ids.email.text
-
+        hash_mdp = bcrypt.hashpw(mot_de_passe.encode("utf-8"), bcrypt.gensalt())
+        hash_mdp_str = hash_mdp.decode("utf-8")
         conn = get_conn()
         existing = conn.execute(
             "SELECT id FROM users WHERE username=?", (utilisateur,)
@@ -63,13 +64,13 @@ class InscriptionScreen(Screen):
 
         conn.execute(
             "INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
-            (utilisateur, mot_de_passe, email),
+            (utilisateur, hash_mdp_str, email),
         )
         conn.commit()
 
         resultat = conn.execute(
-            "SELECT id FROM users WHERE username = ? AND password = ?",
-            (utilisateur, mot_de_passe),
+            "SELECT id FROM users WHERE username = ?",
+            (utilisateur,),
         ).fetchone()
         conn.close()
 
