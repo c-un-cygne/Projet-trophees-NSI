@@ -1,0 +1,6 @@
+bcrypt==5.0.0
+kivy==2.3.1
+kivymd==1.2.0
+libsql==0.1.11
+python-dotenv==1.2.2
+ 

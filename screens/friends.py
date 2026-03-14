@@ -2,13 +2,20 @@ from kivymd.uix.dialog import MDDialog
 
 from db import get_conn, recuperer_demandes_amis
 from widgets import FriendsMenu, DemandeAmis, ListItemAmis, ListItemDemandeAmis
-
+from kivy.animation import Animation
 
 class FriendsMixin:
     """
     Mixin à hériter par TerraGaugeApp.
     Regroupe toute la logique liée aux amis.
     """
+    def fermer_menu(self):
+        if hasattr(self, "dialog") and self.dialog:
+            try:
+                self.dialog.dismiss()
+            except Exception:
+                pass
+    
 
     def menu_amis(self):
         conn = get_conn()
@@ -36,6 +43,11 @@ class FriendsMixin:
         self.dialog.open()
 
     def menu_demande_amis(self):
+        
+        anim = Animation(opacity=0, duration=0.15)
+        anim.bind(on_complete=lambda *a: self.ouvrir_demandes())
+        anim.start(self.dialog)    
+    def ouvrir_demandes(self):
         self.dialog.dismiss()
 
         demande_amis_content = DemandeAmis()
@@ -52,7 +64,9 @@ class FriendsMixin:
             content_cls=demande_amis_content,
             md_bg_color=self.background,
         )
+        self.dialog.opacity = 0
         self.dialog.open()
+        Animation(opacity=1, duration=0.15).start(self.dialog)
 
     def refresh_demandes(self):
         if not self.dialog or not self.dialog.content_cls:
@@ -154,14 +168,14 @@ class FriendsMixin:
             return
 
         deja = conn.execute(
-            "SELECT id FROM friendships WHERE user_id=? AND friend_id=? AND status='pending'",
+            "SELECT id FROM friendships WHERE user_id=? AND friend_id=?",
             (self.Id_Utilisateur, bonid),
         ).fetchone()
 
         if deja:
             conn.close()
             self.dialog.dismiss()
-            self.dialog = MDDialog(title="Soucis", text="Demande déjà envoyée")
+            self.dialog = MDDialog(title="Soucis", text="Demande déjà envoyée ou vous êtes déjà amis")
             self.dialog.open()
             return
 

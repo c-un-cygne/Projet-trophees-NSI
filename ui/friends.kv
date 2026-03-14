@@ -3,6 +3,12 @@
     spacing: "12dp"
     size_hint_y: None
     height: "500dp"
+    MDIconButton:
+        icon: "close-circle"
+        pos_hint: {"right": 1, "top": 1}
+        theme_text_color: "Custom"
+        text_color: app.primary
+        on_release: app.fermer_menu()
 
     MDLabel:
         text: "Mes Demandes"
@@ -24,10 +30,16 @@
 
 <FriendsMenu>:
     orientation: "vertical"
-    padding: "16dp"
+    #padding: "16dp"
     spacing: "12dp"
     size_hint_y: None
     height: "500dp"
+    MDIconButton:
+        icon: "close-circle"
+        pos_hint: {"right": 1, "top": 1}
+        theme_text_color: "Custom"
+        text_color: app.primary
+        on_release: app.fermer_menu()
 
     MDLabel:
         text: "Mes amis"
