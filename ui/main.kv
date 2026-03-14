@@ -36,7 +36,16 @@
 
 
 <HomeTab>:
+
     FloatLayout:
+
+        canvas.before:
+            Color:
+                rgba: app.background
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
 
         MDIconButton:
             icon: "account-group"
@@ -51,7 +60,16 @@
 
 
 <ProfileTab>:
+
     MDBoxLayout:
+        canvas.before:
+            Color:
+                rgba: app.background
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+
         orientation: "vertical"
 
         MDLabel:
@@ -71,12 +89,29 @@
 
 
 <AddTab>:
-    MDLabel:
-        text: "Ajouter empreinte"
-        halign: "center"
+    MDBoxLayout:
+        canvas.before:
+            Color:
+                rgba: app.background
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        orientation: "vertical"
+        MDLabel:
+            text: "Ajouter empreinte"
+            halign: "center"
 
 
 <LeaderboardTab>:
-    MDLabel:
-        text: "Leaderboard"
-        halign: "center"
+    MDBoxLayout:
+        canvas.before:
+            Color:
+                rgba: app.background
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        MDLabel:
+            text: "Leaderboard"
+            halign: "center"
