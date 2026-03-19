@@ -181,9 +181,111 @@
                 size: self.size
 
         orientation: "vertical"
+        padding: "12dp"
+        spacing: "10dp"
+
+        # ── Titre ────────────────────────────────────────────────────────
         MDLabel:
-            text: "Ajouter empreinte"
+            text: "Ajouter une empreinte"
+            theme_text_color: "Custom"
+            text_color: app.primary
+            font_style: "H6"
             halign: "center"
+            size_hint_y: None
+            height: "36dp"
+
+        # ── Filtre catégorie ──────────────────────────────────────────────
+        Spinner:
+            id: category_spinner
+            text: "Toutes"
+            values: ["Toutes"]
+            size_hint_y: None
+            height: "40dp"
+            background_color: app.secondary
+            color: 1, 1, 1, 1
+            on_text: root.rechercher()
+
+        # ── Barre de recherche ────────────────────────────────────────────
+        MDBoxLayout:
+            size_hint_y: None
+            height: "48dp"
+            spacing: "6dp"
+
+            MDTextField:
+                id: search_field
+                hint_text: "Rechercher une activité…"
+                on_text: root.rechercher()
+                mode: "rectangle"
+
+            MDIconButton:
+                icon: "magnify"
+                theme_icon_color: "Custom"
+                icon_color: app.primary
+                on_release: root.rechercher()
+
+        # ── Liste des résultats ───────────────────────────────────────────
+        ScrollView:
+            size_hint_y: 0.45
+
+            MDBoxLayout:
+                id: activities_list
+                orientation: "vertical"
+                spacing: "4dp"
+                padding: "2dp"
+                size_hint_y: None
+                height: self.minimum_height
+
+        # ── Séparateur ────────────────────────────────────────────────────
+        MDSeparator:
+            size_hint_y: None
+            height: "1dp"
+
+        # ── Zone de sélection + quantité ─────────────────────────────────
+        MDBoxLayout:
+            orientation: "vertical"
+            size_hint_y: None
+            height: "120dp"
+            spacing: "6dp"
+
+            MDLabel:
+                id: selected_label
+                text: "Aucune activité sélectionnée"
+                theme_text_color: "Custom"
+                text_color: app.secondary
+                font_size: "13sp"
+                markup: True
+                halign: "center"
+                size_hint_y: None
+                height: "28dp"
+
+            MDTextField:
+                id: quantity_field
+                hint_text: "Quantité"
+                input_filter: "float"
+                disabled: True
+                mode: "rectangle"
+                size_hint_y: None
+                height: "48dp"
+
+            MDRaisedButton:
+                id: valider_btn
+                text: "Valider"
+                md_bg_color: app.primary
+                text_color: 1, 1, 1, 1
+                disabled: True
+                size_hint_x: 1
+                on_release: root.valider()
+
+        # ── Feedback ──────────────────────────────────────────────────────
+        MDLabel:
+            id: feedback_label
+            text: ""
+            theme_text_color: "Custom"
+            text_color: app.secondary
+            font_size: "13sp"
+            halign: "center"
+            size_hint_y: None
+            height: "24dp"
 
 
 <LeaderboardTab>:

@@ -10,7 +10,7 @@ from screens.mainscreen import MainScreen, HomeTab, ProfileTab, AddTab, Leaderbo
 from screens.friends import FriendsMixin
 
 # Widgets personnalisés (doivent être importés pour que Kivy les reconnaisse dans les KV)
-from widgets import FriendsMenu, DemandeAmis, ListItemAmis, ListItemDemandeAmis
+from widgets import FriendsMenu, DemandeAmis, ListItemAmis, ListItemDemandeAmis, ActivityItem
 
 
 Window.size = [300, 600]
