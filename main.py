@@ -1,5 +1,6 @@
+from db import migrate
 from app import TerraGaugeApp
 
-print("Migration terminée")
+migrate()
 if __name__ == "__main__":
     TerraGaugeApp().run()

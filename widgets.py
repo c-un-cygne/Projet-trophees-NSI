@@ -1,5 +1,5 @@
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, NumericProperty
 
 
 class FriendsMenu(MDBoxLayout):
@@ -16,3 +16,11 @@ class ListItemDemandeAmis(MDBoxLayout):
 
 class ListItemAmis(MDBoxLayout):
     username = StringProperty()
+
+
+class ActivityItem(MDBoxLayout):
+    activity_id       = NumericProperty(0)
+    activity_name     = StringProperty()
+    activity_category = StringProperty()
+    activity_unit     = StringProperty()
+    activity_factor   = NumericProperty(0)

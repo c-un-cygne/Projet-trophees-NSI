@@ -48,3 +48,51 @@
         icon_color: "red"
         pos_hint: {"center_y": .5}
         on_release: app.supprimer_ami(root.username)
+
+
+<ActivityItem>:
+    size_hint_y: None
+    height: "64dp"
+    orientation: "horizontal"
+    padding: "8dp", "4dp"
+    spacing: "8dp"
+    md_bg_color: app.background
+
+    canvas.before:
+        Color:
+            rgba: app.accent[0], app.accent[1], app.accent[2], 0.18
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(8), dp(8), dp(8), dp(8)]
+
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: "2dp"
+
+        MDLabel:
+            text: root.activity_name
+            theme_text_color: "Custom"
+            text_color: app.primary
+            font_size: "13sp"
+            bold: True
+            size_hint_y: None
+            height: "22dp"
+            shorten: True
+            shorten_from: "right"
+
+        MDLabel:
+            text: root.activity_category + "  ·  " + str(round(root.activity_factor, 4)) + " kg CO₂/" + root.activity_unit
+            theme_text_color: "Hint"
+            font_size: "11sp"
+            size_hint_y: None
+            height: "18dp"
+
+    MDIconButton:
+        icon: "plus-circle-outline"
+        theme_icon_color: "Custom"
+        icon_color: app.secondary
+        pos_hint: {"center_y": .5}
+        size_hint_x: None
+        width: "40dp"
+        on_release: app.root.get_screen("main").ids.bottom_nav.get_tab("add").selectionner_activite(root.activity_id, root.activity_name, root.activity_unit, root.activity_factor)
