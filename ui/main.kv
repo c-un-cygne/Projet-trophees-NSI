@@ -36,16 +36,13 @@
 
 
 <HomeTab>:
-
     FloatLayout:
-
         canvas.before:
             Color:
                 rgba: app.background
             Rectangle:
                 pos: self.pos
                 size: self.size
-
 
         MDIconButton:
             icon: "account-group"
@@ -60,7 +57,6 @@
 
 
 <ProfileTab>:
-
     MDBoxLayout:
         canvas.before:
             Color:
@@ -73,7 +69,6 @@
         padding: "20dp"
         spacing: "20dp"
 
-        # Titre
         MDLabel:
             text: "Mon Profil"
             theme_text_color: "Custom"
@@ -83,7 +78,6 @@
             size_hint_y: None
             height: "50dp"
 
-        # Bouton déconnecter en haut
         MDRaisedButton:
             text: "Se déconnecter"
             md_bg_color: app.primary
@@ -91,7 +85,6 @@
             size_hint_x: 1
             on_release: app.deconnexion()
 
-        # Carte profil
         MDCard:
             orientation: "vertical"
             padding: "20dp"
@@ -99,22 +92,19 @@
             md_bg_color: app.background
             elevation: 1
             size_hint_y: None
-            height: "280dp"
+            height: "360dp"
 
-            # Nom d'utilisateur
             MDBoxLayout:
                 orientation: "vertical"
                 size_hint_y: None
                 height: "70dp"
                 spacing: "5dp"
-
                 MDLabel:
                     text: "Nom d'utilisateur"
                     theme_text_color: "Hint"
                     font_size: "12sp"
                     size_hint_y: None
                     height: "20dp"
-
                 MDLabel:
                     text: app.username
                     theme_text_color: "Custom"
@@ -123,20 +113,17 @@
                     size_hint_y: None
                     height: "30dp"
 
-            # Email
             MDBoxLayout:
                 orientation: "vertical"
                 size_hint_y: None
                 height: "70dp"
                 spacing: "5dp"
-
                 MDLabel:
                     text: "Email"
                     theme_text_color: "Hint"
                     font_size: "12sp"
                     size_hint_y: None
                     height: "20dp"
-
                 MDLabel:
                     text: app.email
                     theme_text_color: "Custom"
@@ -145,20 +132,17 @@
                     size_hint_y: None
                     height: "30dp"
 
-            # Nombre d'amis
             MDBoxLayout:
                 orientation: "vertical"
                 size_hint_y: None
                 height: "70dp"
                 spacing: "5dp"
-
                 MDLabel:
                     text: "Nombre d'amis"
                     theme_text_color: "Hint"
                     font_size: "12sp"
                     size_hint_y: None
                     height: "20dp"
-
                 MDLabel:
                     text: app.friends_count
                     theme_text_color: "Custom"
@@ -167,7 +151,25 @@
                     size_hint_y: None
                     height: "30dp"
 
-        # Espace flexible pour pousser le contenu vers le haut
+            MDBoxLayout:
+                orientation: "vertical"
+                size_hint_y: None
+                height: "70dp"
+                spacing: "5dp"
+                MDLabel:
+                    text: "Empreinte carbone totale"
+                    theme_text_color: "Hint"
+                    font_size: "12sp"
+                    size_hint_y: None
+                    height: "20dp"
+                MDLabel:
+                    text: app.total_co2 + " kg CO2"
+                    theme_text_color: "Custom"
+                    text_color: app.primary
+                    font_style: "H6"
+                    size_hint_y: None
+                    height: "30dp"
+
         Widget:
 
 
@@ -184,7 +186,6 @@
         padding: "12dp"
         spacing: "10dp"
 
-        # ── Titre ────────────────────────────────────────────────────────
         MDLabel:
             text: "Ajouter une empreinte"
             theme_text_color: "Custom"
@@ -194,7 +195,6 @@
             size_hint_y: None
             height: "36dp"
 
-        # ── Filtre catégorie ──────────────────────────────────────────────
         Spinner:
             id: category_spinner
             text: "Toutes"
@@ -205,42 +205,38 @@
             color: 1, 1, 1, 1
             on_text: root.rechercher()
 
-        # ── Barre de recherche ────────────────────────────────────────────
         MDBoxLayout:
             size_hint_y: None
             height: "48dp"
             spacing: "6dp"
-
             MDTextField:
                 id: search_field
                 hint_text: "Rechercher une activité…"
                 on_text: root.rechercher()
                 mode: "rectangle"
-
             MDIconButton:
                 icon: "magnify"
                 theme_icon_color: "Custom"
                 icon_color: app.primary
                 on_release: root.rechercher()
 
-        # ── Liste des résultats ───────────────────────────────────────────
-        ScrollView:
+        RecycleView:
+            id: activities_list
             size_hint_y: 0.45
-
-            MDBoxLayout:
-                id: activities_list
+            viewclass: "ActivityItem"
+            RecycleBoxLayout:
                 orientation: "vertical"
                 spacing: "4dp"
                 padding: "2dp"
+                default_size_hint: 1, None
+                default_size: None, "64dp"
                 size_hint_y: None
                 height: self.minimum_height
 
-        # ── Séparateur ────────────────────────────────────────────────────
         MDSeparator:
             size_hint_y: None
             height: "1dp"
 
-        # ── Zone de sélection + quantité ─────────────────────────────────
         MDBoxLayout:
             orientation: "vertical"
             size_hint_y: None
@@ -276,7 +272,6 @@
                 size_hint_x: 1
                 on_release: root.valider()
 
-        # ── Feedback ──────────────────────────────────────────────────────
         MDLabel:
             id: feedback_label
             text: ""
@@ -296,7 +291,6 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
-
         MDLabel:
             text: "Leaderboard"
             halign: "center"
