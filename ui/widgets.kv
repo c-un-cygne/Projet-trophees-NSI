@@ -82,7 +82,7 @@
             shorten_from: "right"
 
         MDLabel:
-            text: root.activity_category + "  ·  " + str(round(root.activity_factor, 4)) + " kg CO₂/" + root.activity_unit
+            text: root.activity_category + "  ·  " + str(round(root.activity_factor, 4)) + " kg CO2/" + root.activity_unit
             theme_text_color: "Hint"
             font_size: "11sp"
             size_hint_y: None
@@ -95,4 +95,4 @@
         pos_hint: {"center_y": .5}
         size_hint_x: None
         width: "40dp"
-        on_release: app.root.get_screen("main").ids.bottom_nav.get_tab("add").selectionner_activite(root.activity_id, root.activity_name, root.activity_unit, root.activity_factor)
+        on_release: app.root.get_screen("main").ids.bottom_nav.ids.tab_manager.get_screen("add").selectionner_activite(root.activity_id, root.activity_name, root.activity_unit, root.activity_factor)

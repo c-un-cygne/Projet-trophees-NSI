@@ -4,14 +4,10 @@ from kivy.lang.builder import Builder
 from kivy.properties import StringProperty
 from kivy.utils import get_color_from_hex
 
-# Screens
 from screens.auth import LoginScreen, ConnexionScreen, InscriptionScreen
 from screens.mainscreen import MainScreen, HomeTab, ProfileTab, AddTab, LeaderboardTab
 from screens.friends import FriendsMixin
-
-# Widgets personnalisés (doivent être importés pour que Kivy les reconnaisse dans les KV)
 from widgets import FriendsMenu, DemandeAmis, ListItemAmis, ListItemDemandeAmis, ActivityItem
-
 
 Window.size = [300, 600]
 
@@ -20,6 +16,7 @@ class TerraGaugeApp(FriendsMixin, MDApp):
     username = StringProperty("")
     email = StringProperty("")
     friends_count = StringProperty("0")
+    total_co2 = StringProperty("0.000")
     Id_Utilisateur = None
 
     def build(self):
@@ -33,7 +30,6 @@ class TerraGaugeApp(FriendsMixin, MDApp):
         self.theme_cls.accent_palette  = "Green"
         self.theme_cls.theme_style     = "Light"
 
-        # Chargement de tous les fichiers KV
         for kv_file in ["widgets", "auth", "main", "friends"]:
             Builder.load_file(f"ui/{kv_file}.kv")
 
@@ -44,38 +40,45 @@ class TerraGaugeApp(FriendsMixin, MDApp):
 
     def go_home_tab(self):
         try:
-            main_screen = self.root.get_screen("main")
-            if hasattr(main_screen, 'ids') and hasattr(main_screen.ids, 'bottom_nav'):
-                main_screen.ids.bottom_nav.current = "home"
+            self.root.get_screen("main").ids.bottom_nav.current = "home"
         except Exception as e:
-            print(f"Erreur go_home_tab: {e}")
+            print(f"go_home_tab erreur: {e}")
 
     def update_friends_count(self):
-        """Met à jour le nombre d'amis de l'utilisateur"""
-        if self.Id_Utilisateur:
-            try:
-                from db import get_conn
-                conn = get_conn()
-                # Récupérer les amis où l'utilisateur est l'initiateur
-                amis1 = conn.execute(
-                    "SELECT COUNT(*) FROM friendships WHERE user_id=? AND status='friends'",
-                    (self.Id_Utilisateur,),
-                ).fetchone()[0]
-                # Récupérer les amis où l'utilisateur est le destinataire
-                amis2 = conn.execute(
-                    "SELECT COUNT(*) FROM friendships WHERE friend_id=? AND status='friends'",
-                    (self.Id_Utilisateur,),
-                ).fetchone()[0]
-                conn.close()
-                self.friends_count = str(amis1 + amis2)
-            except Exception:
-                self.friends_count = "0"
+        if not self.Id_Utilisateur:
+            return
+        try:
+            from db import get_conn
+            conn = get_conn()
+            amis1 = conn.execute(
+                "SELECT COUNT(*) FROM friendships WHERE user_id=? AND status='friends'",
+                (self.Id_Utilisateur,)
+            ).fetchone()[0]
+            amis2 = conn.execute(
+                "SELECT COUNT(*) FROM friendships WHERE friend_id=? AND status='friends'",
+                (self.Id_Utilisateur,)
+            ).fetchone()[0]
+            conn.close()
+            self.friends_count = str(amis1 + amis2)
+        except Exception:
+            self.friends_count = "0"
+
+    def update_total_co2(self):
+        if not self.Id_Utilisateur:
+            return
+        try:
+            from db import get_total_co2
+            total = get_total_co2(self.Id_Utilisateur)
+            self.total_co2 = f"{total:.3f}"
+        except Exception:
+            self.total_co2 = "0.000"
 
     def deconnexion(self):
         self.Id_Utilisateur = None
         self.username = ""
         self.email = ""
         self.friends_count = "0"
+        self.total_co2 = "0.000"
 
         if hasattr(self, "dialog") and self.dialog:
             try:
@@ -85,24 +88,13 @@ class TerraGaugeApp(FriendsMixin, MDApp):
 
         if self.root:
             try:
-                main_screen = self.root.get_screen("main")
-                if hasattr(main_screen, 'ids') and hasattr(main_screen.ids, 'bottom_nav'):
-                    main_screen.ids.bottom_nav.current = "home"
+                self.root.get_screen("connexion").ids.utilisateur.text = ""
+                self.root.get_screen("connexion").ids.mot_de_passe.text = ""
+                self.root.get_screen("connexion").ids.error.text = ""
             except Exception:
                 pass
-            
             try:
-                connexion_screen = self.root.get_screen("connexion")
-                connexion_screen.ids.utilisateur.text = ""
-                connexion_screen.ids.mot_de_passe.text = ""
-                connexion_screen.ids.error.text = ""
+                self.root.get_screen("main").ids.bottom_nav.current = "home"
             except Exception:
                 pass
-
-            try:
-                main_screen = self.root.get_screen("main")
-                main_screen.ids.bottom_nav.current = "home"
-            except Exception:
-                pass
-
             self.root.current = "login"
