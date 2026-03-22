@@ -61,7 +61,6 @@ class LeaderboardTab(MDBottomNavigationItem):
             })
 
         classement.sort(key=lambda x: x["co2"])
-        print("data envoyée au RecycleView:", self.ids.leaderboard_list.data)
         self.ids.leaderboard_list.data = [
             {
                 "rank": i + 1,
