@@ -1,5 +1,5 @@
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivy.properties import StringProperty, NumericProperty
+from kivy.properties import StringProperty, NumericProperty, BooleanProperty
 
 
 class FriendsMenu(MDBoxLayout):
@@ -24,3 +24,10 @@ class ActivityItem(MDBoxLayout):
     activity_category = StringProperty()
     activity_unit     = StringProperty()
     activity_factor   = NumericProperty(0)
+
+
+class LeaderboardRow(MDBoxLayout):
+    rank        = NumericProperty(0)
+    lb_username = StringProperty()
+    lb_co2      = StringProperty()
+    is_me       = BooleanProperty(False)

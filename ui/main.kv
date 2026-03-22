@@ -1,6 +1,16 @@
+# ce fichier définit l'apparence de l'écran principal et de ses onglets :
+# - MainScreen : l'écran avec la barre de navigation du bas
+# - HomeTab : onglet accueil
+# - ProfileTab : onglet profil utilisateur
+# - AddTab : onglet pour ajouter une activité
+# - LeaderboardTab : onglet classement entre amis
+
+
+# ---- écran principal avec la barre de navigation ----
 <MainScreen>:
     name: "main"
 
+    # fond de l'écran
     canvas.before:
         Color:
             rgba: app.background
@@ -8,11 +18,12 @@
             pos: self.pos
             size: self.size
 
+    # la barre de navigation du bas avec les 4 onglets
     MDBottomNavigation:
         id: bottom_nav
-        panel_color: app.primary
-        text_color_active: 1,1,1,1
-        text_color_normal: app.accent
+        panel_color: app.primary          # couleur de fond de la barre
+        text_color_active: 1,1,1,1       # texte blanc pour l'onglet actif
+        text_color_normal: app.accent     # texte vert clair pour les onglets inactifs
 
         HomeTab:
             name: "home"
@@ -35,6 +46,7 @@
             icon: "account"
 
 
+# ---- onglet accueil ----
 <HomeTab>:
     FloatLayout:
         canvas.before:
@@ -44,6 +56,7 @@
                 pos: self.pos
                 size: self.size
 
+        # bouton amis en haut à droite
         MDIconButton:
             icon: "account-group"
             pos_hint: {"right": 1, "top": 1}
@@ -56,6 +69,7 @@
             halign: "center"
 
 
+# ---- onglet profil ----
 <ProfileTab>:
     MDBoxLayout:
         canvas.before:
@@ -85,6 +99,7 @@
             size_hint_x: 1
             on_release: app.deconnexion()
 
+        # carte avec les infos du profil
         MDCard:
             orientation: "vertical"
             padding: "20dp"
@@ -94,6 +109,7 @@
             size_hint_y: None
             height: "360dp"
 
+            # nom d'utilisateur
             MDBoxLayout:
                 orientation: "vertical"
                 size_hint_y: None
@@ -113,6 +129,7 @@
                     size_hint_y: None
                     height: "30dp"
 
+            # email
             MDBoxLayout:
                 orientation: "vertical"
                 size_hint_y: None
@@ -132,6 +149,7 @@
                     size_hint_y: None
                     height: "30dp"
 
+            # nombre d'amis
             MDBoxLayout:
                 orientation: "vertical"
                 size_hint_y: None
@@ -151,6 +169,7 @@
                     size_hint_y: None
                     height: "30dp"
 
+            # empreinte carbone totale
             MDBoxLayout:
                 orientation: "vertical"
                 size_hint_y: None
@@ -170,9 +189,11 @@
                     size_hint_y: None
                     height: "30dp"
 
+        # espace vide pour pousser la carte vers le haut
         Widget:
 
 
+# ---- onglet ajouter une activité ----
 <AddTab>:
     MDBoxLayout:
         canvas.before:
@@ -195,6 +216,7 @@
             size_hint_y: None
             height: "36dp"
 
+        # menu déroulant pour filtrer par catégorie
         Spinner:
             id: category_spinner
             text: "Toutes"
@@ -203,8 +225,9 @@
             height: "40dp"
             background_color: app.secondary
             color: 1, 1, 1, 1
-            on_text: root.rechercher()
+            on_text: root.rechercher()  # on relance la recherche quand on change de catégorie
 
+        # barre de recherche textuelle
         MDBoxLayout:
             size_hint_y: None
             height: "48dp"
@@ -220,10 +243,11 @@
                 icon_color: app.primary
                 on_release: root.rechercher()
 
+        # liste des activités (RecycleView pour les performances avec beaucoup d'éléments)
         RecycleView:
             id: activities_list
             size_hint_y: 0.45
-            viewclass: "ActivityItem"
+            viewclass: "ActivityItem"  # on utilise notre widget ActivityItem pour chaque ligne
             RecycleBoxLayout:
                 orientation: "vertical"
                 spacing: "4dp"
@@ -233,45 +257,51 @@
                 size_hint_y: None
                 height: self.minimum_height
 
+        # ligne de séparation
         MDSeparator:
             size_hint_y: None
             height: "1dp"
 
+        # zone de validation de l'activité sélectionnée
         MDBoxLayout:
             orientation: "vertical"
             size_hint_y: None
             height: "120dp"
             spacing: "6dp"
 
+            # affiche le nom de l'activité sélectionnée
             MDLabel:
                 id: selected_label
                 text: "Aucune activité sélectionnée"
                 theme_text_color: "Custom"
                 text_color: app.secondary
                 font_size: "13sp"
-                markup: True
+                markup: True  # pour pouvoir mettre du texte en gras avec [b]
                 halign: "center"
                 size_hint_y: None
                 height: "28dp"
 
+            # champ pour entrer la quantité
             MDTextField:
                 id: quantity_field
                 hint_text: "Quantité"
-                input_filter: "float"
-                disabled: True
+                input_filter: "float"  # autorise seulement les nombres décimaux
+                disabled: True         # désactivé tant qu'aucune activité n'est sélectionnée
                 mode: "rectangle"
                 size_hint_y: None
                 height: "48dp"
 
+            # bouton valider
             MDRaisedButton:
                 id: valider_btn
                 text: "Valider"
                 md_bg_color: app.primary
                 text_color: 1, 1, 1, 1
-                disabled: True
+                disabled: True  # désactivé tant qu'aucune activité n'est sélectionnée
                 size_hint_x: 1
                 on_release: root.valider()
 
+        # message de confirmation après validation
         MDLabel:
             id: feedback_label
             text: ""
@@ -283,6 +313,7 @@
             height: "24dp"
 
 
+# ---- onglet classement ----
 <LeaderboardTab>:
     MDBoxLayout:
         canvas.before:
@@ -291,6 +322,58 @@
             Rectangle:
                 pos: self.pos
                 size: self.size
+
+        orientation: "vertical"
+        padding: "12dp"
+        spacing: "10dp"
+
+        # titre + bouton rafraîchir sur la même ligne
+        MDBoxLayout:
+            size_hint_y: None
+            height: "48dp"
+            spacing: "8dp"
+
+            MDLabel:
+                text: "Classement"
+                theme_text_color: "Custom"
+                text_color: app.primary
+                font_style: "H6"
+                halign: "center"
+
+            # bouton pour recharger le classement manuellement
+            MDIconButton:
+                icon: "refresh"
+                pos_hint: {"center_y": 0.5}
+                theme_icon_color: "Custom"
+                icon_color: app.secondary
+                size_hint_x: None
+                width: "40dp"
+                on_release: root.charger_classement()
+
+        # petite explication des règles
         MDLabel:
-            text: "Leaderboard"
+            text: "Le moins de CO2 = le meilleur !"
+            font_size: "12sp"
+            theme_text_color: "Custom"
+            text_color: app.secondary
             halign: "center"
+            size_hint_y: None
+            height: "24dp"
+
+        MDSeparator:
+            size_hint_y: None
+            height: "1dp"
+
+        # liste scrollable du classement
+        ScrollView:
+            RecycleView:
+                id: leaderboard_list
+                viewclass: "LeaderboardRow"  # on utilise notre widget LeaderboardRow
+                RecycleBoxLayout:
+                    orientation: "vertical"
+                    spacing: "6dp"
+                    padding: "4dp"
+                    default_size_hint: 1, None
+                    default_size: None, "60dp"
+                    size_hint_y: None
+                    height: self.minimum_height
