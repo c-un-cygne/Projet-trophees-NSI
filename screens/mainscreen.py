@@ -16,67 +16,64 @@ class LeaderboardTab(MDBottomNavigationItem):
 
     def on_enter(self, *args):
         app = MDApp.get_running_app()
-        if app.Id_Utilisateur:
+        if app.id_user:
             self.charger_classement()
 
     def charger_classement(self):
         from db import get_conn, get_total_co2
         app = MDApp.get_running_app()
 
-        if not app.Id_Utilisateur:
-            return
-
         conn = get_conn()
 
+        # la table friendships est pas symétrique donc on fait deux requêtes
         amis = conn.execute(
             """SELECT users.id, users.username FROM friendships
                JOIN users ON friendships.friend_id = users.id
                WHERE friendships.user_id=? AND friendships.status='friends'""",
-            (app.Id_Utilisateur,),
+            (app.id_user,)
         ).fetchall()
+
         amis += conn.execute(
             """SELECT users.id, users.username FROM friendships
                JOIN users ON friendships.user_id = users.id
                WHERE friendships.friend_id=? AND friendships.status='friends'""",
-            (app.Id_Utilisateur,),
+            (app.id_user,)
         ).fetchall()
+
         conn.close()
 
-        tous = [(app.Id_Utilisateur, app.username)] + list(amis)
+        tous = [(app.id_user, app.pseudo)] + list(amis)
 
-        # dédoublonnage au cas où
-        ids_vus = set()
+        # parfois le même ami apparaît deux fois à cause des deux requêtes
+        vus = set()
         participants = []
         for uid, uname in tous:
-            if uid not in ids_vus:
-                ids_vus.add(uid)
-                participants.append((uid, uname))
+            if uid in vus:
+                continue
+            vus.add(uid)
+            participants.append((uid, uname))
 
-        classement = []
+        scores = []
         for uid, uname in participants:
-            classement.append({
-                "uid": uid,
-                "username": uname,
-                "co2": get_total_co2(uid)
-            })
+            scores.append((uid, uname, get_total_co2(uid)))
 
-        classement.sort(key=lambda x: x["co2"])
+        scores.sort(key=lambda x: x[2])  # moins de co2 = mieux
+
         self.ids.leaderboard_list.data = [
             {
                 "rank": i + 1,
-                "lb_username": entry["username"],
-                "lb_co2": f"{entry['co2']:.3f}",
-                "is_me": entry["uid"] == app.Id_Utilisateur,
+                "lb_username": uname,
+                "lb_co2": f"{co2:.3f}",
+                "is_me": uid == app.id_user,
             }
-            for i, entry in enumerate(classement)
+            for i, (uid, uname, co2) in enumerate(scores)
         ]
 
 
 class ProfileTab(MDBottomNavigationItem):
 
     def on_enter(self, *args):
-        app = MDApp.get_running_app()
-        app.update_total_co2()
+        MDApp.get_running_app().maj_co2()
 
 
 class AddTab(MDBottomNavigationItem):
@@ -95,17 +92,18 @@ class AddTab(MDBottomNavigationItem):
         self.rechercher()
 
     def rechercher(self):
+        # on annule l'event précédent pour pas spammer la bdd
         if self.recherche_event:
             self.recherche_event.cancel()
         self.recherche_event = Clock.schedule_once(lambda dt: self.faire_recherche(), 0.3)
 
     def faire_recherche(self):
         from db import rechercher_activites
-        query = self.ids.search_field.text.strip()
+        q = self.ids.search_field.text.strip()
         cat = self.ids.category_spinner.text
         if cat == "Toutes":
             cat = ""
-        resultats = rechercher_activites(query, cat)
+
         self.ids.activities_list.data = [
             {
                 "activity_id": a["id"],
@@ -114,19 +112,14 @@ class AddTab(MDBottomNavigationItem):
                 "activity_unit": a["unit"],
                 "activity_factor": a["factor"],
             }
-            for a in resultats
+            for a in rechercher_activites(q, cat)
         ]
 
-    def selectionner_activite(self, activity_id, name, unit, factor):
-        self.activite_selectionnee = {
-            "id": activity_id,
-            "name": name,
-            "unit": unit,
-            "factor": factor,
-        }
-        self.ids.selected_label.text = f"[b]{name}[/b]  ({unit})"
+    def selectionner_activite(self, activity_id, nom, unite, facteur):
+        self.activite_selectionnee = {"id": activity_id, "nom": nom, "unite": unite, "facteur": facteur}
+        self.ids.selected_label.text = f"[b]{nom}[/b]  ({unite})"
         self.ids.quantity_field.disabled = False
-        self.ids.quantity_field.hint_text = f"Quantité en {unit}"
+        self.ids.quantity_field.hint_text = f"Quantité en {unite}"
         self.ids.quantity_field.text = ""
         self.ids.valider_btn.disabled = False
 
@@ -138,17 +131,19 @@ class AddTab(MDBottomNavigationItem):
             return
 
         texte = self.ids.quantity_field.text.strip().replace(",", ".")
+
         try:
-            quantite = float(texte)
-            if quantite <= 0:
+            qte = float(texte)
+            if qte <= 0:
                 raise ValueError
         except ValueError:
             self.ids.feedback_label.text = "Quantité invalide."
             return
 
         from db import ajouter_entree_carbone
-        co2 = ajouter_entree_carbone(app.Id_Utilisateur, self.activite_selectionnee["id"], quantite)
+        co2 = ajouter_entree_carbone(app.id_user, self.activite_selectionnee["id"], qte)
         self.ids.feedback_label.text = f"✓ +{co2:.3f} kg CO2 ajouté !"
+        app.maj_co2()
         self.reset_selection()
 
     def reset_selection(self):
@@ -160,7 +155,4 @@ class AddTab(MDBottomNavigationItem):
         Clock.schedule_once(lambda dt: self.effacer_feedback(), 3)
 
     def effacer_feedback(self):
-        try:
-            self.ids.feedback_label.text = ""
-        except Exception:
-            pass
+        self.ids.feedback_label.text = ""

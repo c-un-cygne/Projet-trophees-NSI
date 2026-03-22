@@ -9,84 +9,67 @@ from screens.mainscreen import MainScreen, HomeTab, ProfileTab, AddTab, Leaderbo
 from screens.friends import FriendsMixin
 from widgets import FriendsMenu, DemandeAmis, ListItemAmis, ListItemDemandeAmis, ActivityItem, LeaderboardRow
 
-Window.size = [300, 600]
+# taille fixe pour simuler un écran de téléphone
+Window.size = (300, 600)
 
 
 class TerraGaugeApp(FriendsMixin, MDApp):
 
-    username = StringProperty("")
-    email = StringProperty("")
-    friends_count = StringProperty("0")
-    total_co2 = StringProperty("0.000")
-    Id_Utilisateur = None
+    # infos de l'utilisateur connecté, vides par défaut
+    pseudo = StringProperty("")
+    mail = StringProperty("")
+    nb_amis = StringProperty("0")
+    co2_total = StringProperty("0.000")
+    id_user = None
 
     def build(self):
+        # couleurs qu'on a choisies, palette verte pour coller au thème écologie
         self.primary    = get_color_from_hex("#285430")
         self.secondary  = get_color_from_hex("#5F8D4E")
         self.accent     = get_color_from_hex("#A4BE7B")
         self.background = get_color_from_hex("#E5D9B6")
 
         self.theme_cls.primary_palette = "Green"
-        self.theme_cls.primary_hue     = "800"
-        self.theme_cls.accent_palette  = "Green"
-        self.theme_cls.theme_style     = "Light"
+        self.theme_cls.theme_style = "Light"
 
-        for kv_file in ["widgets", "auth", "main", "friends"]:
-            Builder.load_file(f"ui/{kv_file}.kv")
+        for f in ["widgets", "auth", "main", "friends"]:
+            Builder.load_file(f"ui/{f}.kv")
 
         kv = Builder.load_file("ui/base.kv")
         kv.transition.clearcolor = self.background
         Window.clearcolor = self.background
         return kv
 
-    def go_home_tab(self):
-        try:
-            self.root.get_screen("main").ids.bottom_nav.current = "home"
-        except Exception as e:
-            print(f"go_home_tab erreur: {e}")
+    def aller_accueil(self):
+        self.root.get_screen("main").ids.bottom_nav.current = "home"
 
-    def update_friends_count(self):
-        if not self.Id_Utilisateur:
+    def maj_nb_amis(self):
+        if not self.id_user:
             return
-        try:
-            from db import get_friends_count
-            count = get_friends_count(self.Id_Utilisateur)
-            self.friends_count = str(count)
-        except Exception:
-            self.friends_count = "0"
 
-    def update_total_co2(self):
-        if not self.Id_Utilisateur:
+        from db import get_friends_count
+        self.nb_amis = str(get_friends_count(self.id_user))
+
+    def maj_co2(self):
+        if not self.id_user:
             return
-        try:
-            from db import get_total_co2
-            total = get_total_co2(self.Id_Utilisateur)
-            self.total_co2 = f"{total:.3f}"
-        except Exception:
-            self.total_co2 = "0.000"
+        from db import get_total_co2
+        self.co2_total = f"{get_total_co2(self.id_user):.3f}"
 
     def deconnexion(self):
-        self.Id_Utilisateur = None
-        self.username = ""
-        self.email = ""
-        self.friends_count = "0"
-        self.total_co2 = "0.000"
+        self.id_user = None
+        self.pseudo = ""
+        self.mail = ""
+        self.nb_amis = "0"
+        self.co2_total = "0.000"
 
-        if hasattr(self, "dialog") and self.dialog:
-            try:
-                self.dialog.dismiss()
-            except Exception:
-                pass
+        self.dialog.dismiss()
 
-        if self.root:
-            try:
-                self.root.get_screen("connexion").ids.utilisateur.text = ""
-                self.root.get_screen("connexion").ids.mot_de_passe.text = ""
-                self.root.get_screen("connexion").ids.error.text = ""
-            except Exception:
-                pass
-            try:
-                self.root.get_screen("main").ids.bottom_nav.current = "home"
-            except Exception:
-                pass
-            self.root.current = "login"
+        # on vide les champs pour pas que ça reste affiché
+        ecran_co = self.root.get_screen("connexion")
+        ecran_co.ids.utilisateur.text = ""
+        ecran_co.ids.mot_de_passe.text = ""
+        ecran_co.ids.error.text = ""
+
+        self.aller_accueil()
+        self.root.current = "login"

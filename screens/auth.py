@@ -12,77 +12,87 @@ class LoginScreen(Screen):
 class ConnexionScreen(Screen):
 
     def connexion(self):
-        utilisateur = self.ids.utilisateur.text
-        mot_de_passe = self.ids.mot_de_passe.text
+        pseudo = self.ids.utilisateur.text
+        mdp = self.ids.mot_de_passe.text
 
+        # on cherche l'utilisateur dans la bdd
         conn = get_conn()
-        resultat = conn.execute(
+        res = conn.execute(
             "SELECT id, email, password FROM users WHERE username = ?",
-            (utilisateur,),
+            (pseudo,)
         ).fetchone()
         conn.close()
 
-        if resultat and bcrypt.checkpw(mot_de_passe.encode("utf-8"), resultat[2].encode("utf-8")):
-            id, email, _ = resultat
-            app = MDApp.get_running_app()
-            app.Id_Utilisateur = id
-            app.username = utilisateur
-            app.email = email
-            app.update_friends_count()
-            app.root.current = "main"
-            Clock.schedule_once(lambda dt: app.go_home_tab(), 1.0)
-        else:
-            self.ids.error.text = "Nom d'utilisateur ou mot de passe incorrect"
+        if not res:
+            self.ids.error.text = "Utilisateur introuvable"
+            return
+
+        # bcrypt compare le mdp entré avec le hash stocké
+        if not bcrypt.checkpw(mdp.encode(), res[2].encode()):
+            self.ids.error.text = "Mot de passe incorrect"
+            return
+
+        app = MDApp.get_running_app()
+        app.id_user = res[0]
+        app.pseudo = pseudo
+        app.mail = res[1]
+        app.maj_nb_amis()
+        app.root.current = "main"
+        # petit délai sinon l'onglet home se charge pas bien
+        Clock.schedule_once(lambda dt: app.aller_accueil(), 1.0)
 
 
 class InscriptionScreen(Screen):
 
     def inscription(self):
-        utilisateur = self.ids.utilisateur.text
-        mot_de_passe = self.ids.mot_de_passe.text
-        mot_de_passe2 = self.ids.mot_de_passe2.text
+        pseudo = self.ids.utilisateur.text.strip()
+        mdp = self.ids.mot_de_passe.text
+        mdp2 = self.ids.mot_de_passe2.text
+        email = self.ids.email.text.strip()
 
-        if mot_de_passe != mot_de_passe2:
+        if mdp != mdp2:
             self.ids.password_error.text = "Les mots de passe ne correspondent pas (mets tes lunettes la prochaine fois)"
             return
 
-        if len(mot_de_passe) < 6:
-            self.ids.password_error.text = "Le mot de passe doit contenir au moins 6 caractères (j'ai oublié de te le dire avant, sorry)"
+        if len(mdp) < 6:
+            self.ids.password_error.text = "Minimum 6 caractères pour le mot de passe"
             return
 
         self.ids.password_error.text = ""
-        email = self.ids.email.text
-        hash_mdp = bcrypt.hashpw(mot_de_passe.encode("utf-8"), bcrypt.gensalt())
-        hash_mdp_str = hash_mdp.decode("utf-8")
+
         conn = get_conn()
-        existing = conn.execute(
-            "SELECT id FROM users WHERE username=?", (utilisateur,)
+
+        # on vérifie que le pseudo est dispo
+        deja_pris = conn.execute(
+            "SELECT id FROM users WHERE username=?", (pseudo,)
         ).fetchone()
-        if existing:
-            self.ids.password_error.text = "Nom d'utilisateur déjà utilisé"
+        if deja_pris:
+            self.ids.password_error.text = "Ce pseudo est déjà pris"
             conn.close()
             return
 
+        hash_mdp = bcrypt.hashpw(mdp.encode(), bcrypt.gensalt()).decode()
         conn.execute(
             "INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
-            (utilisateur, hash_mdp_str, email),
+            (pseudo, hash_mdp, email)
         )
         conn.commit()
 
-        resultat = conn.execute(
-            "SELECT id FROM users WHERE username = ?",
-            (utilisateur,),
-        ).fetchone()
+        # on récupère l'id qu'on vient de créer
+        nouvel_id = conn.execute(
+            "SELECT id FROM users WHERE username=?", (pseudo,)
+        ).fetchone()[0]
         conn.close()
 
         app = MDApp.get_running_app()
-        app.Id_Utilisateur = resultat[0]
-        app.username = utilisateur
-        app.email = email
-        app.update_friends_count()
+        app.id_user = nouvel_id
+        app.pseudo = pseudo
+        app.mail = email
+        app.maj_nb_amis()
         app.root.current = "main"
-        Clock.schedule_once(lambda dt: app.go_home_tab(), 1.0)
+        Clock.schedule_once(lambda dt: app.aller_accueil(), 1.0)
 
+        # on vide les champs
         self.ids.utilisateur.text = ""
         self.ids.email.text = ""
         self.ids.mot_de_passe.text = ""

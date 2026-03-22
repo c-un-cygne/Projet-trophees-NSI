@@ -1,59 +1,49 @@
 from kivymd.uix.dialog import MDDialog
-
-from db import get_conn, get_friends_list, recuperer_demandes_amis, accept_friend_request, refuse_friend_request, send_friend_request, remove_friend
-from widgets import FriendsMenu, DemandeAmis, ListItemAmis, ListItemDemandeAmis
 from kivy.animation import Animation
 
+from db import get_friends_list, recuperer_demandes_amis, accept_friend_request, refuse_friend_request, send_friend_request, remove_friend
+from widgets import FriendsMenu, DemandeAmis, ListItemAmis, ListItemDemandeAmis
+
+
 class FriendsMixin:
-    """
-    Mixin à hériter par TerraGaugeApp.
-    Regroupe toute la logique liée aux amis.
-    """
+
     def fermer_menu(self):
-        if hasattr(self, "dialog") and self.dialog:
-            try:
-                self.dialog.dismiss()
-            except Exception:
-                pass
-    
+        self.dialog.dismiss()
 
     def menu_amis(self):
-        # Requête unique au lieu de deux
-        amis = get_friends_list(self.Id_Utilisateur)
+        amis = get_friends_list(self.id_user)
 
-        friends_menu = FriendsMenu()
-        friends_menu.ids.liste_amis.clear_widgets()
-        for username in amis:
-            friends_menu.ids.liste_amis.add_widget(ListItemAmis(username=username))
+        menu = FriendsMenu()
+        menu.ids.liste_amis.clear_widgets()
+        for u in amis:
+            menu.ids.liste_amis.add_widget(ListItemAmis(username=u))
 
         self.dialog = MDDialog(
             title="Amis",
             type="custom",
-            content_cls=friends_menu,
+            content_cls=menu,
             md_bg_color=self.background,
         )
         self.dialog.open()
 
     def menu_demande_amis(self):
-        
+        # petite anim pour pas que ça soit brutal
         anim = Animation(opacity=0, duration=0.15)
         anim.bind(on_complete=lambda *a: self.ouvrir_demandes())
-        anim.start(self.dialog)    
+        anim.start(self.dialog)
+
     def ouvrir_demandes(self):
         self.dialog.dismiss()
 
-        demande_amis_content = DemandeAmis()
-        liste_demandes = recuperer_demandes_amis(self.Id_Utilisateur)
-        demande_amis_content.ids.liste_demandes.clear_widgets()
-        for username in liste_demandes:
-            demande_amis_content.ids.liste_demandes.add_widget(
-                ListItemDemandeAmis(username=username)
-            )
+        contenu = DemandeAmis()
+        contenu.ids.liste_demandes.clear_widgets()
+        for u in recuperer_demandes_amis(self.id_user):
+            contenu.ids.liste_demandes.add_widget(ListItemDemandeAmis(username=u))
 
         self.dialog = MDDialog(
             title="Demandes",
             type="custom",
-            content_cls=demande_amis_content,
+            content_cls=contenu,
             md_bg_color=self.background,
         )
         self.dialog.opacity = 0
@@ -61,60 +51,48 @@ class FriendsMixin:
         Animation(opacity=1, duration=0.15).start(self.dialog)
 
     def refresh_demandes(self):
-        if not self.dialog or not self.dialog.content_cls:
-            return
-        content = self.dialog.content_cls
-        if not isinstance(content, DemandeAmis):
+        if not self.dialog or not isinstance(self.dialog.content_cls, DemandeAmis):
             return
 
-        liste_demandes = recuperer_demandes_amis(self.Id_Utilisateur)
-        content.ids.liste_demandes.clear_widgets()
-        for username in liste_demandes:
-            content.ids.liste_demandes.add_widget(ListItemDemandeAmis(username=username))
+        contenu = self.dialog.content_cls
+        contenu.ids.liste_demandes.clear_widgets()
+        for u in recuperer_demandes_amis(self.id_user):
+            contenu.ids.liste_demandes.add_widget(ListItemDemandeAmis(username=u))
 
     def refresh_amis(self):
-        if not self.dialog or not self.dialog.content_cls:
-            return
-        content = self.dialog.content_cls
-        if not isinstance(content, FriendsMenu):
+        if not self.dialog or not isinstance(self.dialog.content_cls, FriendsMenu):
             return
 
-        # Requête unique au lieu de deux
-        amis = get_friends_list(self.Id_Utilisateur)
-
-        content.ids.liste_amis.clear_widgets()
-        for username in amis:
-            content.ids.liste_amis.add_widget(ListItemAmis(username=username))
+        contenu = self.dialog.content_cls
+        contenu.ids.liste_amis.clear_widgets()
+        for u in get_friends_list(self.id_user):
+            contenu.ids.liste_amis.add_widget(ListItemAmis(username=u))
 
     def accept_request(self, username):
-        if accept_friend_request(self.Id_Utilisateur, username):
+        if accept_friend_request(self.id_user, username):
             self.refresh_demandes()
 
     def refuse_request(self, username):
-        if refuse_friend_request(self.Id_Utilisateur, username):
+        if refuse_friend_request(self.id_user, username):
             self.refresh_demandes()
 
     def envoyer_demande(self, username):
-        result = send_friend_request(self.Id_Utilisateur, username)
-        
+        res = send_friend_request(self.id_user, username)
         self.dialog.dismiss()
-        
-        if result == "success":
-            self.dialog = MDDialog(title="Succès", text=f"Demande envoyée à {username}")
-        elif result == "not_found":
-            self.dialog = MDDialog(title="Erreur", text=f"L'utilisateur {username} n'existe pas")
-        elif result == "self":
-            self.dialog = MDDialog(title="Erreur", text="Tu ne peux pas t'envoyer une demande à toi-même")
-        elif result == "already_sent":
-            self.dialog = MDDialog(title="Soucis", text="Demande déjà envoyée ou vous êtes déjà amis")
-        else:
-            self.dialog = MDDialog(title="Erreur", text="Une erreur est survenue")
-        
+
+        msgs = {
+            "success":      f"Demande envoyée à {username} !",
+            "not_found":    f"L'utilisateur '{username}' existe pas",
+            "self":         "Tu peux pas t'envoyer une demande à toi-même...",
+            "already_sent": "Demande déjà envoyée ou vous êtes déjà amis",
+        }
+        texte = msgs.get(res, "Une erreur est survenue")
+        self.dialog = MDDialog(title="Amis", text=texte)
         self.dialog.open()
 
     def supprimer_ami(self, username):
-        if remove_friend(self.Id_Utilisateur, username):
+        if remove_friend(self.id_user, username):
             self.refresh_amis()
 
     def voir_profil(self, username):
-        pass  # à coder plus tard
+        pass  # à faire plus tard

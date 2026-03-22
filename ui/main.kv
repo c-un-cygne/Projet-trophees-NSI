@@ -46,6 +46,13 @@
             icon: "account"
 
 
+
+
+
+
+
+
+
 # ---- onglet accueil ----
 <HomeTab>:
     FloatLayout:
@@ -67,6 +74,14 @@
         MDLabel:
             text: "Page Accueil"
             halign: "center"
+
+
+
+
+
+
+
+
 
 
 # ---- onglet profil ----
@@ -122,7 +137,7 @@
                     size_hint_y: None
                     height: "20dp"
                 MDLabel:
-                    text: app.username
+                    text: app.pseudo
                     theme_text_color: "Custom"
                     text_color: app.primary
                     font_style: "H6"
@@ -142,7 +157,7 @@
                     size_hint_y: None
                     height: "20dp"
                 MDLabel:
-                    text: app.email
+                    text: app.mail
                     theme_text_color: "Custom"
                     text_color: app.secondary
                     font_size: "13sp"
@@ -162,7 +177,7 @@
                     size_hint_y: None
                     height: "20dp"
                 MDLabel:
-                    text: app.friends_count
+                    text: app.nb_amis
                     theme_text_color: "Custom"
                     text_color: app.accent
                     font_style: "H6"
@@ -182,7 +197,7 @@
                     size_hint_y: None
                     height: "20dp"
                 MDLabel:
-                    text: app.total_co2 + " kg CO2"
+                    text: app.co2_total + " kg CO2"
                     theme_text_color: "Custom"
                     text_color: app.primary
                     font_style: "H6"
@@ -191,6 +206,11 @@
 
         # espace vide pour pousser la carte vers le haut
         Widget:
+
+
+
+
+
 
 
 # ---- onglet ajouter une activité ----
@@ -216,6 +236,7 @@
             size_hint_y: None
             height: "36dp"
 
+
         # menu déroulant pour filtrer par catégorie
         Spinner:
             id: category_spinner
@@ -227,6 +248,8 @@
             color: 1, 1, 1, 1
             on_text: root.rechercher()  # on relance la recherche quand on change de catégorie
 
+
+
         # barre de recherche textuelle
         MDBoxLayout:
             size_hint_y: None
@@ -237,6 +260,8 @@
                 hint_text: "Rechercher une activité…"
                 on_text: root.rechercher()
                 mode: "rectangle"
+
+
             MDIconButton:
                 icon: "magnify"
                 theme_icon_color: "Custom"
@@ -256,6 +281,8 @@
                 default_size: None, "64dp"
                 size_hint_y: None
                 height: self.minimum_height
+
+
 
         # ligne de séparation
         MDSeparator:
@@ -280,6 +307,8 @@
                 halign: "center"
                 size_hint_y: None
                 height: "28dp"
+
+
 
             # champ pour entrer la quantité
             MDTextField:
@@ -313,6 +342,15 @@
             height: "24dp"
 
 
+
+
+
+
+
+
+
+
+
 # ---- onglet classement ----
 <LeaderboardTab>:
     MDBoxLayout:
@@ -327,6 +365,7 @@
         padding: "12dp"
         spacing: "10dp"
 
+
         # titre + bouton rafraîchir sur la même ligne
         MDBoxLayout:
             size_hint_y: None
@@ -339,6 +378,7 @@
                 text_color: app.primary
                 font_style: "H6"
                 halign: "center"
+
 
             # bouton pour recharger le classement manuellement
             MDIconButton:
@@ -365,6 +405,8 @@
             height: "1dp"
 
         # liste scrollable du classement
+
+
         ScrollView:
             RecycleView:
                 id: leaderboard_list
@@ -377,3 +419,4 @@
                     default_size: None, "60dp"
                     size_hint_y: None
                     height: self.minimum_height
+
