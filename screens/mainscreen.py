@@ -13,7 +13,64 @@ class HomeTab(MDBottomNavigationItem):
 
 
 class LeaderboardTab(MDBottomNavigationItem):
-    pass
+
+    def on_enter(self, *args):
+        app = MDApp.get_running_app()
+        if app.Id_Utilisateur:
+            self.charger_classement()
+
+    def charger_classement(self):
+        from db import get_conn, get_total_co2
+        app = MDApp.get_running_app()
+
+        if not app.Id_Utilisateur:
+            return
+
+        conn = get_conn()
+
+        amis = conn.execute(
+            """SELECT users.id, users.username FROM friendships
+               JOIN users ON friendships.friend_id = users.id
+               WHERE friendships.user_id=? AND friendships.status='friends'""",
+            (app.Id_Utilisateur,),
+        ).fetchall()
+        amis += conn.execute(
+            """SELECT users.id, users.username FROM friendships
+               JOIN users ON friendships.user_id = users.id
+               WHERE friendships.friend_id=? AND friendships.status='friends'""",
+            (app.Id_Utilisateur,),
+        ).fetchall()
+        conn.close()
+
+        tous = [(app.Id_Utilisateur, app.username)] + list(amis)
+
+        # dédoublonnage au cas où
+        ids_vus = set()
+        participants = []
+        for uid, uname in tous:
+            if uid not in ids_vus:
+                ids_vus.add(uid)
+                participants.append((uid, uname))
+
+        classement = []
+        for uid, uname in participants:
+            classement.append({
+                "uid": uid,
+                "username": uname,
+                "co2": get_total_co2(uid)
+            })
+
+        classement.sort(key=lambda x: x["co2"])
+        print("data envoyée au RecycleView:", self.ids.leaderboard_list.data)
+        self.ids.leaderboard_list.data = [
+            {
+                "rank": i + 1,
+                "lb_username": entry["username"],
+                "lb_co2": f"{entry['co2']:.3f}",
+                "is_me": entry["uid"] == app.Id_Utilisateur,
+            }
+            for i, entry in enumerate(classement)
+        ]
 
 
 class ProfileTab(MDBottomNavigationItem):
@@ -39,8 +96,6 @@ class AddTab(MDBottomNavigationItem):
         self.rechercher()
 
     def rechercher(self):
-        # on attend un peu avant de lancer la recherche pour ne pas
-        # envoyer une requête à chaque lettre tapée
         if self.recherche_event:
             self.recherche_event.cancel()
         self.recherche_event = Clock.schedule_once(lambda dt: self.faire_recherche(), 0.3)

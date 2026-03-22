@@ -7,12 +7,13 @@ from kivy.utils import get_color_from_hex
 from screens.auth import LoginScreen, ConnexionScreen, InscriptionScreen
 from screens.mainscreen import MainScreen, HomeTab, ProfileTab, AddTab, LeaderboardTab
 from screens.friends import FriendsMixin
-from widgets import FriendsMenu, DemandeAmis, ListItemAmis, ListItemDemandeAmis, ActivityItem
+from widgets import FriendsMenu, DemandeAmis, ListItemAmis, ListItemDemandeAmis, ActivityItem, LeaderboardRow
 
 Window.size = [300, 600]
 
 
 class TerraGaugeApp(FriendsMixin, MDApp):
+
     username = StringProperty("")
     email = StringProperty("")
     friends_count = StringProperty("0")

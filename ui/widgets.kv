@@ -96,3 +96,44 @@
         size_hint_x: None
         width: "40dp"
         on_release: app.root.get_screen("main").ids.bottom_nav.ids.tab_manager.get_screen("add").selectionner_activite(root.activity_id, root.activity_name, root.activity_unit, root.activity_factor)
+
+
+<LeaderboardRow>:
+    orientation: "horizontal"
+    size_hint_y: None
+    height: "60dp"
+    padding: "12dp", "8dp"
+    spacing: "10dp"
+
+    canvas.before:
+        Color:
+            rgba: app.accent if root.is_me else app.background
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(8),dp(8),dp(8),dp(8)]
+
+    MDLabel:
+        text: str(root.rank)
+        size_hint_x: None
+        width: "30dp"
+        halign: "center"
+        theme_text_color: "Custom"
+        text_color: app.primary if root.is_me else (0.4, 0.4, 0.4, 1)
+        font_style: "H6"
+
+    MDLabel:
+        text: root.lb_username
+        size_hint_x: 1
+        theme_text_color: "Custom"
+        text_color: app.primary if root.is_me else (0.2, 0.2, 0.2, 1)
+        font_size: "14sp"
+
+    MDLabel:
+        text: root.lb_co2 + " kg"
+        size_hint_x: None
+        width: "80dp"
+        halign: "right"
+        theme_text_color: "Custom"
+        text_color: app.secondary if root.is_me else (0.4, 0.4, 0.4, 1)
+        font_size: "13sp"
