@@ -1,6 +1,8 @@
 import os
 import libsql
+import time
 from dotenv import load_dotenv
+from functools import lru_cache
 
 rep_base = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(rep_base, ".gitignore/data.env"))
@@ -8,179 +10,49 @@ load_dotenv(os.path.join(rep_base, ".gitignore/data.env"))
 db_url = os.getenv("TURSO_DATABASE_URL")
 db_token = os.getenv("TURSO_AUTH_TOKEN")
 
-# Liste complète des activités pour la migration
-ACTIVITIES = [
-    # Transport
-    ("Transport", "Voiture essence (petite)", 0.151, "km"),
-    ("Transport", "Voiture essence (moyenne)", 0.218, "km"),
-    ("Transport", "Voiture essence (SUV)", 0.282, "km"),
-    ("Transport", "Voiture diesel (petite)", 0.127, "km"),
-    ("Transport", "Voiture diesel (moyenne)", 0.171, "km"),
-    ("Transport", "Voiture diesel (SUV)", 0.235, "km"),
-    ("Transport", "Voiture électrique", 0.103, "km"),
-    ("Transport", "Voiture hybride", 0.141, "km"),
-    ("Transport", "Moto grosse cylindrée", 0.191, "km"),
-    ("Transport", "Moto petite cylindrée", 0.083, "km"),
-    ("Transport", "Scooter essence", 0.079, "km"),
-    ("Transport", "Vélo électrique", 0.011, "km"),
-    ("Transport", "Trottinette électrique", 0.008, "km"),
-    ("Transport", "Bus urbain", 0.029, "km"),
-    ("Transport", "Autocar longue distance", 0.021, "km"),
-    ("Transport", "Métro/RER", 0.004, "km"),
-    ("Transport", "Tramway", 0.003, "km"),
-    ("Transport", "Train TGV", 0.004, "km"),
-    ("Transport", "Train Intercités", 0.029, "km"),
-    ("Transport", "Avion court-courrier (<1000km)", 0.258, "km"),
-    ("Transport", "Avion moyen-courrier", 0.214, "km"),
-    ("Transport", "Avion long-courrier (>3500km)", 0.187, "km"),
-    ("Transport", "Bateau/Ferry", 0.112, "km"),
-    ("Transport", "Croisière", 0.245, "km"),
-    ("Transport", "Taxi/VTC", 0.238, "km"),
-    ("Transport", "Covoiturage (2 personnes)", 0.109, "km"),
-    ("Transport", "Covoiturage (3 personnes)", 0.073, "km"),
-    # Alimentation
-    ("Alimentation", "Bœuf", 27.0, "kg"),
-    ("Alimentation", "Veau", 23.4, "kg"),
-    ("Alimentation", "Agneau", 22.9, "kg"),
-    ("Alimentation", "Porc", 5.8, "kg"),
-    ("Alimentation", "Poulet", 4.5, "kg"),
-    ("Alimentation", "Dinde", 3.8, "kg"),
-    ("Alimentation", "Canard", 6.1, "kg"),
-    ("Alimentation", "Poisson gras (saumon, thon)", 5.4, "kg"),
-    ("Alimentation", "Poisson maigre (cabillaud)", 3.0, "kg"),
-    ("Alimentation", "Crevettes", 18.2, "kg"),
-    ("Alimentation", "Œufs", 2.4, "kg"),
-    ("Alimentation", "Fromage", 8.9, "kg"),
-    ("Alimentation", "Beurre", 8.6, "kg"),
-    ("Alimentation", "Lait de vache", 1.1, "litre"),
-    ("Alimentation", "Lait de soja", 0.3, "litre"),
-    ("Alimentation", "Lait d'avoine", 0.4, "litre"),
-    ("Alimentation", "Yaourt", 2.2, "kg"),
-    ("Alimentation", "Légumes frais locaux", 0.4, "kg"),
-    ("Alimentation", "Légumes frais importés", 1.0, "kg"),
-    ("Alimentation", "Légumes surgelés", 0.9, "kg"),
-    ("Alimentation", "Légumes en conserve", 1.1, "kg"),
-    ("Alimentation", "Fruits locaux de saison", 0.3, "kg"),
-    ("Alimentation", "Fruits importés (avion)", 5.0, "kg"),
-    ("Alimentation", "Fruits importés (bateau)", 1.1, "kg"),
-    ("Alimentation", "Légumineuses", 0.9, "kg"),
-    ("Alimentation", "Tofu", 2.0, "kg"),
-    ("Alimentation", "Riz", 2.7, "kg"),
-    ("Alimentation", "Pâtes", 1.3, "kg"),
-    ("Alimentation", "Pain", 0.8, "kg"),
-    ("Alimentation", "Chocolat", 4.8, "kg"),
-    ("Alimentation", "Café", 8.9, "kg"),
-    ("Alimentation", "Thé", 2.1, "kg"),
-    ("Alimentation", "Eau en bouteille plastique", 0.3, "litre"),
-    ("Alimentation", "Bière", 1.1, "litre"),
-    ("Alimentation", "Vin", 1.4, "litre"),
-    ("Alimentation", "Huile d'olive", 3.5, "litre"),
-    ("Alimentation", "Sucre", 0.6, "kg"),
-    # Énergie
-    ("Énergie", "Électricité France", 0.052, "kWh"),
-    ("Énergie", "Électricité Allemagne", 0.350, "kWh"),
-    ("Énergie", "Électricité monde", 0.420, "kWh"),
-    ("Énergie", "Gaz naturel", 0.227, "kWh"),
-    ("Énergie", "Fioul domestique", 0.324, "kWh"),
-    ("Énergie", "Propane/GPL", 0.272, "kWh"),
-    ("Énergie", "Bois bûches", 0.030, "kWh"),
-    ("Énergie", "Granulés bois", 0.027, "kWh"),
-    ("Énergie", "Pompe à chaleur", 0.019, "kWh"),
-    ("Énergie", "Climatisation", 0.052, "kWh"),
-    ("Énergie", "Chauffe-eau électrique", 0.052, "kWh"),
-    ("Énergie", "Chauffe-eau solaire", 0.008, "kWh"),
-    # Achats
-    ("Achats", "Smartphone neuf", 70.0, "unité"),
-    ("Achats", "Smartphone reconditionné", 14.0, "unité"),
-    ("Achats", "Ordinateur portable neuf", 156.0, "unité"),
-    ("Achats", "Ordinateur fixe + écran", 440.0, "unité"),
-    ("Achats", "Tablette", 63.0, "unité"),
-    ("Achats", "Télévision 55\"", 400.0, "unité"),
-    ("Achats", "Réfrigérateur", 200.0, "unité"),
-    ("Achats", "Lave-linge", 180.0, "unité"),
-    ("Achats", "Lave-vaisselle", 190.0, "unité"),
-    ("Achats", "Aspirateur", 45.0, "unité"),
-    ("Achats", "T-shirt coton neuf", 5.5, "unité"),
-    ("Achats", "T-shirt coton seconde main", 0.5, "unité"),
-    ("Achats", "Jean neuf", 23.5, "unité"),
-    ("Achats", "Jean seconde main", 2.3, "unité"),
-    ("Achats", "Veste/manteau", 47.0, "unité"),
-    ("Achats", "Chaussures cuir", 19.0, "unité"),
-    ("Achats", "Chaussures synthétiques", 12.0, "unité"),
-    ("Achats", "Livre neuf", 2.5, "unité"),
-    ("Achats", "Journal quotidien", 0.1, "unité"),
-    ("Achats", "Streaming vidéo HD", 0.036, "heure"),
-    ("Achats", "Streaming vidéo 4K", 0.072, "heure"),
-    ("Achats", "Streaming musique", 0.001, "heure"),
-    ("Achats", "Jeu vidéo console", 0.01, "heure"),
-    ("Achats", "Navigation internet", 0.008, "heure"),
-    ("Achats", "Email sans pièce jointe", 0.000004, "unité"),
-    ("Achats", "Email avec pièce jointe", 0.000019, "unité"),
-    # Logement
-    ("Logement", "Chauffage gaz (par m²/an)", 15.0, "m²"),
-    ("Logement", "Chauffage électrique (par m²/an)", 6.4, "m²"),
-    ("Logement", "Chauffage fioul (par m²/an)", 20.0, "m²"),
-    ("Logement", "Chauffage bois (par m²/an)", 2.5, "m²"),
-    ("Logement", "Construction maison neuve", 400.0, "m²"),
-    ("Logement", "Rénovation appartement", 120.0, "m²"),
-    ("Logement", "Eau chaude sanitaire gaz", 0.227, "kWh"),
-    ("Logement", "Eau chaude sanitaire élec", 0.052, "kWh"),
-    # Déchets
-    ("Déchets", "Déchet ménager enfoui", 0.452, "kg"),
-    ("Déchets", "Déchet ménager incinéré", 0.271, "kg"),
-    ("Déchets", "Papier/carton recyclé", 0.021, "kg"),
-    ("Déchets", "Verre recyclé", 0.010, "kg"),
-    ("Déchets", "Plastique recyclé", 0.050, "kg"),
-    ("Déchets", "Compostage", 0.012, "kg"),
-]
+# Cache global pour les données qui changent peu souvent
+_cache = {
+    "categories": None,
+    "categories_timestamp": 0,
+    "co2_cache": {},  # {user_id: (value, timestamp)}
+    "search_cache": {},  # {(query, categorie): (results, timestamp)}
+}
 
+CACHE_TTL = 300  # 5 minutes en secondes
+CO2_CACHE_TTL = 60  # 1 minute pour le CO2 (changements fréquents)
+SEARCH_CACHE_TTL = 120  # 2 minutes pour la recherche
 
 def get_conn():
+    """Retourne une connexion à la base de données."""
     return libsql.connect(database=db_url, auth_token=db_token)
 
+def invalidate_co2_cache(user_id: int):
+    """Invalide le cache du CO2 pour un utilisateur."""
+    if user_id in _cache["co2_cache"]:
+        del _cache["co2_cache"][user_id]
 
-def migrate():
-    """Crée les tables activities et carbon_history si elles n'existent pas, et les peuple."""
-    conn = get_conn()
+def invalidate_search_cache():
+    """Invalide tout le cache de recherche."""
+    _cache["search_cache"].clear()
 
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS activities (
-            id       INTEGER PRIMARY KEY AUTOINCREMENT,
-            category TEXT    NOT NULL,
-            name     TEXT    NOT NULL,
-            factor   REAL    NOT NULL,
-            unit     TEXT    NOT NULL
-        )
-    """)
-
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS carbon_history (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id     INTEGER NOT NULL,
-            activity_id INTEGER NOT NULL,
-            quantity    REAL    NOT NULL,
-            co2_kg      REAL    NOT NULL,
-            recorded_at TEXT    NOT NULL DEFAULT (datetime('now'))
-        )
-    """)
-
-    # Peuple activities seulement si vide
-    count = conn.execute("SELECT COUNT(*) FROM activities").fetchone()[0]
-    if count == 0:
-        conn.executemany(
-            "INSERT INTO activities (category, name, factor, unit) VALUES (?, ?, ?, ?)",
-            ACTIVITIES,
-        )
-
-    conn.commit()
-    conn.close()
-    print("Migration terminée : tables activities et carbon_history prêtes.")
-
-
-# ── Helpers activités ──────────────────────────────────────────────────────────
+def _is_cache_valid(timestamp: int, ttl: int) -> bool:
+    """Vérifie si un cache est encore valide."""
+    return (time.time() - timestamp) < ttl
 
 def rechercher_activites(query: str, categorie: str = "") -> list[dict]:
-    """Retourne les activités filtrées par texte libre et/ou catégorie."""
+    """
+    Retourne les activités filtrées par texte libre et/ou catégorie.
+    Utilise un cache avec TTL pour éviter les requêtes répétées.
+    """
+    cache_key = (query, categorie)
+    
+    # Vérifier le cache
+    if cache_key in _cache["search_cache"]:
+        results, timestamp = _cache["search_cache"][cache_key]
+        if _is_cache_valid(timestamp, SEARCH_CACHE_TTL):
+            return results
+    
+    # Pas en cache ou expiré → requête DB
     conn = get_conn()
     sql = "SELECT id, category, name, factor, unit FROM activities WHERE 1=1"
     params = []
@@ -193,21 +65,49 @@ def rechercher_activites(query: str, categorie: str = "") -> list[dict]:
     sql += " ORDER BY category, name"
     rows = conn.execute(sql, params).fetchall()
     conn.close()
-    return [
+    
+    results = [
         {"id": r[0], "category": r[1], "name": r[2], "factor": r[3], "unit": r[4]}
         for r in rows
     ]
+    
+    # Stocker en cache
+    _cache["search_cache"][cache_key] = (results, time.time())
+    
+    return results
 
 
 def get_categories() -> list[str]:
+    """
+    Retourne les catégories d'activités.
+    Les catégories sont mises en cache car elles ne changent jamais.
+    """
+    # Vérifier le cache
+    if _cache["categories"] is not None:
+        if _is_cache_valid(_cache["categories_timestamp"], CACHE_TTL):
+            return _cache["categories"]
+    
+    # Pas en cache ou expiré → requête DB
     conn = get_conn()
-    rows = conn.execute("SELECT DISTINCT category FROM activities ORDER BY category").fetchall()
+    rows = conn.execute(
+        "SELECT DISTINCT category FROM activities ORDER BY category"
+    ).fetchall()
     conn.close()
-    return [r[0] for r in rows]
+    
+    categories = [r[0] for r in rows]
+    
+    # Stocker en cache
+    _cache["categories"] = categories
+    _cache["categories_timestamp"] = time.time()
+    
+    return categories
 
 
 def ajouter_entree_carbone(user_id: int, activity_id: int, quantity: float) -> float:
-    """Insère une entrée dans carbon_history. Retourne le CO2 en kg."""
+    """
+    Insère une entrée dans carbon_history. Retourne le CO2 en kg.
+    Invalide le cache du CO2 après insertion.
+    """
     conn = get_conn()
     row = conn.execute("SELECT factor FROM activities WHERE id=?", (activity_id,)).fetchone()
     if not row:
@@ -220,23 +120,62 @@ def ajouter_entree_carbone(user_id: int, activity_id: int, quantity: float) -> f
     )
     conn.commit()
     conn.close()
+    
+    # Invalider le cache du CO2 pour cet utilisateur
+    invalidate_co2_cache(user_id)
+    
     return co2_kg
 
 
 def get_total_co2(user_id: int) -> float:
-    """Retourne le total CO2 (kg) de l'utilisateur."""
+    """
+    Retourne le total CO2 (kg) de l'utilisateur.
+    Utilise un cache avec invalidation après chaque nouvelle entrée.
+    """
+    # Vérifier le cache
+    if user_id in _cache["co2_cache"]:
+        value, timestamp = _cache["co2_cache"][user_id]
+        if _is_cache_valid(timestamp, CO2_CACHE_TTL):
+            return value
+    
+    # Pas en cache ou expiré → requête DB
     conn = get_conn()
     row = conn.execute(
         "SELECT COALESCE(SUM(co2_kg), 0) FROM carbon_history WHERE user_id=?",
         (user_id,),
     ).fetchone()
     conn.close()
-    return row[0]
+    
+    value = row[0]
+    
+    # Stocker en cache
+    _cache["co2_cache"][user_id] = (value, time.time())
+    
+    return value
 
 
-# ── Helpers existants ──────────────────────────────────────────────────────────
+def get_friends_count(user_id: int) -> int:
+    """
+    Retourne le nombre total d'amis (bidirectionnels).
+    Optimisée en une seule requête.
+    """
+    conn = get_conn()
+    # Compte les amis des deux côtés en une seule requête
+    row = conn.execute("""
+        SELECT COUNT(DISTINCT 
+            CASE 
+                WHEN user_id = ? AND status = 'friends' THEN friend_id
+                WHEN friend_id = ? AND status = 'friends' THEN user_id
+            END
+        ) FROM friendships
+        WHERE (user_id = ? OR friend_id = ?) AND status = 'friends'
+    """, (user_id, user_id, user_id, user_id)).fetchone()
+    conn.close()
+    return row[0] if row else 0
+
 
 def recuperer_demandes_amis(user_id):
+    """Retourne les demandes d'amis en attente."""
     conn = get_conn()
     demandes = conn.execute(
         """
@@ -248,3 +187,176 @@ def recuperer_demandes_amis(user_id):
     ).fetchall()
     conn.close()
     return [i[0] for i in demandes]
+
+
+def get_friends_list(user_id: int) -> list[str]:
+    """
+    Récupère la liste de tous les amis (bidirectionnels) en une seule requête.
+    Bien plus efficace que deux requêtes séparées.
+    """
+    conn = get_conn()
+    rows = conn.execute("""
+        SELECT DISTINCT u.username 
+        FROM friendships f
+        JOIN users u ON (
+            (f.user_id = ? AND f.friend_id = u.id) OR
+            (f.friend_id = ? AND f.user_id = u.id)
+        )
+        WHERE f.status = 'friends'
+        ORDER BY u.username
+    """, (user_id, user_id)).fetchall()
+    conn.close()
+    return [r[0] for r in rows]
+
+
+def accept_friend_request(user_id: int, requesting_username: str) -> bool:
+    """
+    Accepte une demande d'ami. Retourne True si succès, False sinon.
+    """
+    conn = get_conn()
+    try:
+        # Récupérer l'ID de l'utilisateur qui a envoyé la demande
+        requesting_user = conn.execute(
+            "SELECT id FROM users WHERE username=?", (requesting_username,)
+        ).fetchone()
+        
+        if not requesting_user:
+            return False
+        
+        requesting_id = requesting_user[0]
+        
+        # Vérifier qu'il y a une demande pending
+        existing = conn.execute("""
+            SELECT id FROM friendships
+            WHERE user_id = ? AND friend_id = ? AND status = 'pending'
+        """, (requesting_id, user_id)).fetchone()
+        
+        if not existing:
+            conn.close()
+            return False
+        
+        # Supprimer la demande et ajouter l'amitié
+        conn.execute(
+            "DELETE FROM friendships WHERE user_id = ? AND friend_id = ? AND status = 'pending'",
+            (requesting_id, user_id)
+        )
+        conn.execute("""
+            INSERT INTO friendships (user_id, friend_id, status) 
+            VALUES (?, ?, 'friends')
+        """, (requesting_id, user_id))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        conn.close()
+        print(f"Erreur accept_friend_request: {e}")
+        return False
+
+
+def refuse_friend_request(user_id: int, requesting_username: str) -> bool:
+    """
+    Refuse une demande d'ami. Retourne True si succès, False sinon.
+    """
+    conn = get_conn()
+    try:
+        # Récupérer l'ID de l'utilisateur qui a envoyé la demande
+        requesting_user = conn.execute(
+            "SELECT id FROM users WHERE username=?", (requesting_username,)
+        ).fetchone()
+        
+        if not requesting_user:
+            return False
+        
+        requesting_id = requesting_user[0]
+        
+        # Supprimer la demande
+        conn.execute("""
+            DELETE FROM friendships
+            WHERE user_id = ? AND friend_id = ? AND status = 'pending'
+        """, (requesting_id, user_id))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        conn.close()
+        print(f"Erreur refuse_friend_request: {e}")
+        return False
+
+
+def send_friend_request(user_id: int, target_username: str) -> str:
+    """
+    Envoie une demande d'ami. 
+    Retourne 'success', 'not_found', 'self', ou 'already_sent'
+    """
+    conn = get_conn()
+    try:
+        # Vérifier que l'utilisateur cible existe
+        target = conn.execute(
+            "SELECT id FROM users WHERE username=?", (target_username,)
+        ).fetchone()
+        
+        if not target:
+            conn.close()
+            return "not_found"
+        
+        target_id = target[0]
+        
+        # Vérifier qu'on ne s'envoie pas une demande à soi-même
+        if target_id == user_id:
+            conn.close()
+            return "self"
+        
+        # Vérifier qu'une demande n'a pas déjà été envoyée
+        existing = conn.execute("""
+            SELECT id FROM friendships 
+            WHERE user_id = ? AND friend_id = ?
+        """, (user_id, target_id)).fetchone()
+        
+        if existing:
+            conn.close()
+            return "already_sent"
+        
+        # Envoyer la demande
+        conn.execute("""
+            INSERT INTO friendships (user_id, friend_id, status) 
+            VALUES (?, ?, 'pending')
+        """, (user_id, target_id))
+        conn.commit()
+        conn.close()
+        return "success"
+    except Exception as e:
+        conn.close()
+        print(f"Erreur send_friend_request: {e}")
+        return "error"
+
+
+def remove_friend(user_id: int, friend_username: str) -> bool:
+    """
+    Supprime un ami. Retourne True si succès, False sinon.
+    """
+    conn = get_conn()
+    try:
+        # Récupérer l'ID de l'ami
+        friend = conn.execute(
+            "SELECT id FROM users WHERE username=?", (friend_username,)
+        ).fetchone()
+        
+        if not friend:
+            conn.close()
+            return False
+        
+        friend_id = friend[0]
+        
+        # Supprimer les deux côtés de l'amitié
+        conn.execute("""
+            DELETE FROM friendships
+            WHERE ((user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?))
+            AND status = 'friends'
+        """, (user_id, friend_id, friend_id, user_id))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        conn.close()
+        print(f"Erreur remove_friend: {e}")
+        return False

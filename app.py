@@ -49,18 +49,9 @@ class TerraGaugeApp(FriendsMixin, MDApp):
         if not self.Id_Utilisateur:
             return
         try:
-            from db import get_conn
-            conn = get_conn()
-            amis1 = conn.execute(
-                "SELECT COUNT(*) FROM friendships WHERE user_id=? AND status='friends'",
-                (self.Id_Utilisateur,)
-            ).fetchone()[0]
-            amis2 = conn.execute(
-                "SELECT COUNT(*) FROM friendships WHERE friend_id=? AND status='friends'",
-                (self.Id_Utilisateur,)
-            ).fetchone()[0]
-            conn.close()
-            self.friends_count = str(amis1 + amis2)
+            from db import get_friends_count
+            count = get_friends_count(self.Id_Utilisateur)
+            self.friends_count = str(count)
         except Exception:
             self.friends_count = "0"
 

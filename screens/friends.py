@@ -1,6 +1,6 @@
 from kivymd.uix.dialog import MDDialog
 
-from db import get_conn, recuperer_demandes_amis
+from db import get_conn, get_friends_list, recuperer_demandes_amis, accept_friend_request, refuse_friend_request, send_friend_request, remove_friend
 from widgets import FriendsMenu, DemandeAmis, ListItemAmis, ListItemDemandeAmis
 from kivy.animation import Animation
 
@@ -18,21 +18,13 @@ class FriendsMixin:
     
 
     def menu_amis(self):
-        conn = get_conn()
-        amis = conn.execute(
-            "SELECT username FROM friendships JOIN users ON friendships.friend_id = users.id WHERE friendships.user_id=? AND friendships.status='friends'",
-            (self.Id_Utilisateur,),
-        ).fetchall()
-        amis += conn.execute(
-            "SELECT username FROM friendships JOIN users ON friendships.user_id = users.id WHERE friendships.friend_id=? AND friendships.status='friends'",
-            (self.Id_Utilisateur,),
-        ).fetchall()
-        conn.close()
+        # Requête unique au lieu de deux
+        amis = get_friends_list(self.Id_Utilisateur)
 
         friends_menu = FriendsMenu()
         friends_menu.ids.liste_amis.clear_widgets()
-        for row in amis:
-            friends_menu.ids.liste_amis.add_widget(ListItemAmis(username=row[0]))
+        for username in amis:
+            friends_menu.ids.liste_amis.add_widget(ListItemAmis(username=username))
 
         self.dialog = MDDialog(
             title="Amis",
@@ -87,126 +79,42 @@ class FriendsMixin:
         if not isinstance(content, FriendsMenu):
             return
 
-        conn = get_conn()
-        amis = conn.execute(
-            "SELECT username FROM friendships JOIN users ON friendships.friend_id = users.id WHERE friendships.user_id=? AND friendships.status='friends'",
-            (self.Id_Utilisateur,),
-        ).fetchall()
-        amis += conn.execute(
-            "SELECT username FROM friendships JOIN users ON friendships.user_id = users.id WHERE friendships.friend_id=? AND friendships.status='friends'",
-            (self.Id_Utilisateur,),
-        ).fetchall()
-        conn.close()
+        # Requête unique au lieu de deux
+        amis = get_friends_list(self.Id_Utilisateur)
 
         content.ids.liste_amis.clear_widgets()
-        for row in amis:
-            content.ids.liste_amis.add_widget(ListItemAmis(username=row[0]))
+        for username in amis:
+            content.ids.liste_amis.add_widget(ListItemAmis(username=username))
 
     def accept_request(self, username):
-        conn = get_conn()
-        userid_row = conn.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
-        if not userid_row:
-            conn.close()
-            return
-        userid = userid_row[0]
-
-        friendships = conn.execute(
-            """SELECT id FROM friendships
-               WHERE ((friend_id=? AND user_id=?) OR (friend_id=? AND user_id=?))
-               AND status='pending'""",
-            (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
-        ).fetchall()
-
-        if friendships:
-            for row in friendships:
-                conn.execute("DELETE FROM friendships WHERE id=?", (row[0],))
-            conn.execute(
-                "INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'friends')",
-                (userid, self.Id_Utilisateur),
-            )
-            conn.commit()
-
-        conn.close()
-        self.refresh_demandes()
+        if accept_friend_request(self.Id_Utilisateur, username):
+            self.refresh_demandes()
 
     def refuse_request(self, username):
-        conn = get_conn()
-        userid_row = conn.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
-        if not userid_row:
-            conn.close()
-            return
-        userid = userid_row[0]
-
-        friendship = conn.execute(
-            """SELECT id FROM friendships
-               WHERE ((friend_id=? AND user_id=?) OR (friend_id=? AND user_id=?))
-               AND status='pending'""",
-            (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
-        ).fetchone()
-
-        if friendship:
-            conn.execute("DELETE FROM friendships WHERE id=?", (friendship[0],))
-            conn.commit()
-
-        conn.close()
-        self.refresh_demandes()
+        if refuse_friend_request(self.Id_Utilisateur, username):
+            self.refresh_demandes()
 
     def envoyer_demande(self, username):
-        conn = get_conn()
-        user = conn.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
-
-        if user is None:
-            conn.close()
-            self.dialog.dismiss()
-            self.dialog = MDDialog(title="Erreur", text=f"L'utilisateur {username} n'existe pas")
-            self.dialog.open()
-            return
-
-        bonid = user[0]
-        if bonid == self.Id_Utilisateur:
-            conn.close()
-            return
-
-        deja = conn.execute(
-            "SELECT id FROM friendships WHERE user_id=? AND friend_id=?",
-            (self.Id_Utilisateur, bonid),
-        ).fetchone()
-
-        if deja:
-            conn.close()
-            self.dialog.dismiss()
-            self.dialog = MDDialog(title="Soucis", text="Demande déjà envoyée ou vous êtes déjà amis")
-            self.dialog.open()
-            return
-
-        conn.execute(
-            "INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'pending')",
-            (self.Id_Utilisateur, bonid),
-        )
-        conn.commit()
-        conn.close()
-
+        result = send_friend_request(self.Id_Utilisateur, username)
+        
         self.dialog.dismiss()
-        self.dialog = MDDialog(title="Succès", text=f"Demande envoyée à {username}")
+        
+        if result == "success":
+            self.dialog = MDDialog(title="Succès", text=f"Demande envoyée à {username}")
+        elif result == "not_found":
+            self.dialog = MDDialog(title="Erreur", text=f"L'utilisateur {username} n'existe pas")
+        elif result == "self":
+            self.dialog = MDDialog(title="Erreur", text="Tu ne peux pas t'envoyer une demande à toi-même")
+        elif result == "already_sent":
+            self.dialog = MDDialog(title="Soucis", text="Demande déjà envoyée ou vous êtes déjà amis")
+        else:
+            self.dialog = MDDialog(title="Erreur", text="Une erreur est survenue")
+        
         self.dialog.open()
 
     def supprimer_ami(self, username):
-        conn = get_conn()
-        userid_row = conn.execute("SELECT id FROM users WHERE username=?", (username,)).fetchone()
-        if not userid_row:
-            conn.close()
-            return
-        userid = userid_row[0]
-
-        conn.execute(
-            """DELETE FROM friendships
-            WHERE ((user_id=? AND friend_id=?) OR (user_id=? AND friend_id=?))
-            AND status='friends'""",
-            (self.Id_Utilisateur, userid, userid, self.Id_Utilisateur),
-        )
-        conn.commit()
-        conn.close()
-        self.refresh_amis()
+        if remove_friend(self.Id_Utilisateur, username):
+            self.refresh_amis()
 
     def voir_profil(self, username):
         pass  # à coder plus tard
