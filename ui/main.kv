@@ -52,8 +52,6 @@
 
 
 
-
-# ---- onglet accueil ----
 <HomeTab>:
     FloatLayout:
         canvas.before:
@@ -71,15 +69,60 @@
             text_color: app.primary
             on_release: app.menu_amis()
 
-        MDLabel:
-            text: "Page Accueil"
-            halign: "center"
+        MDBoxLayout:
+            orientation: "vertical"
+            padding: "20dp"
+            spacing: "16dp"
+            pos_hint: {"center_x": .5, "center_y": .5}
+            size_hint: 0.9, None
+            height: self.minimum_height
 
+            MDLabel:
+                text: "Bienvenue, " + app.pseudo + " !"
+                theme_text_color: "Custom"
+                text_color: app.primary
+                font_style: "H5"
+                halign: "center"
+                size_hint_y: None
+                height: "40dp"
 
+            # co2 de la semaine
+            MDCard:
+                orientation: "vertical"
+                padding: "16dp"
+                md_bg_color: app.background
+                elevation: 1
+                size_hint_y: None
+                height: "80dp"
 
+                MDLabel:
+                    id: label_co2_semaine
+                    text: "Chargement..."
+                    theme_text_color: "Custom"
+                    text_color: app.primary
+                    font_style: "H6"
+                    halign: "center"
 
+            # message motivant
+            MDCard:
+                orientation: "vertical"
+                padding: "16dp"
+                md_bg_color: app.background
+                elevation: 1
+                size_hint_y: None
+                height: "100dp"
 
-
+                MDLabel:
+                    id: label_message
+                    text: ""
+                    theme_text_color: "Custom"
+                    text_color: app.secondary
+                    font_size: "13sp"
+                    halign: "center"
+                    # obligé de mettre ça sinon le texte dépasse
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: self.texture_size[1]
 
 
 

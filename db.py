@@ -22,8 +22,12 @@ TTL_CO2 = 60
 TTL_RECHERCHE = 120
 
 
+
+
 def get_conn():
     return libsql.connect(database=db_url, auth_token=db_token)
+
+
 
 
 def rechercher_activites(query, categorie=""):
@@ -53,6 +57,7 @@ def rechercher_activites(query, categorie=""):
     return res
 
 
+
 def get_categories():
     if cache["categories"] and time.time() - cache["categories_ts"] < TTL_CATEGORIES:
         return cache["categories"]
@@ -64,6 +69,9 @@ def get_categories():
     cache["categories"] = [i[0] for i in rows]
     cache["categories_ts"] = time.time()
     return cache["categories"]
+
+
+
 
 
 def ajouter_entree_carbone(user_id, activity_id, quantite):
@@ -83,6 +91,11 @@ def ajouter_entree_carbone(user_id, activity_id, quantite):
     return co2_kg
 
 
+
+
+
+
+
 def get_total_co2(user_id):
     if user_id in cache["co2"]:
         val, ts = cache["co2"][user_id]
@@ -98,6 +111,11 @@ def get_total_co2(user_id):
     return val
 
 
+
+
+
+
+
 def get_friends_count(user_id):
     conn = get_conn()
     # on fait deux requêtes et on additionne, plus simple à comprendre
@@ -105,6 +123,8 @@ def get_friends_count(user_id):
     amis2 = conn.execute("SELECT COUNT(*) FROM friendships WHERE friend_id=? AND status='friends'", (user_id,)).fetchone()[0]
     conn.close()
     return amis1 + amis2
+
+
 
 
 def recuperer_demandes_amis(user_id):
@@ -117,12 +137,19 @@ def recuperer_demandes_amis(user_id):
     return [i[0] for i in rows]
 
 
+
+
+
 def get_friends_list(user_id):
     conn = get_conn()
     amis1 = conn.execute("SELECT users.username FROM friendships JOIN users ON friendships.friend_id = users.id WHERE friendships.user_id=? AND friendships.status='friends'", (user_id,)).fetchall()
     amis2 = conn.execute("SELECT users.username FROM friendships JOIN users ON friendships.user_id = users.id WHERE friendships.friend_id=? AND friendships.status='friends'", (user_id,)).fetchall()
     conn.close()
     return list(set([i[0] for i in amis1 + amis2]))
+
+
+
+
 
 
 def accept_friend_request(user_id, demandeur):
@@ -145,6 +172,10 @@ def accept_friend_request(user_id, demandeur):
     return True
 
 
+
+
+
+
 def refuse_friend_request(user_id, demandeur):
     conn = get_conn()
     res = conn.execute("SELECT id FROM users WHERE username=?", (demandeur,)).fetchone()
@@ -156,6 +187,7 @@ def refuse_friend_request(user_id, demandeur):
     conn.commit()
     conn.close()
     return True
+
 
 
 def send_friend_request(user_id, cible):
@@ -181,6 +213,14 @@ def send_friend_request(user_id, cible):
     return "success"
 
 
+
+
+
+
+
+
+
+
 def remove_friend(user_id, ami):
     conn = get_conn()
     res = conn.execute("SELECT id FROM users WHERE username=?", (ami,)).fetchone()
@@ -193,3 +233,28 @@ def remove_friend(user_id, ami):
     conn.commit()
     conn.close()
     return True
+
+
+
+
+def get_co2_semaine(user_id):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT co2_kg, recorded_at FROM carbon_history WHERE user_id=?",
+        (user_id,)
+    ).fetchall()
+    conn.close()
+
+    # on récupère la date d'aujourd'hui au format YYYY-MM-DD
+    maintenant = time.mktime(time.localtime())
+    sept_jours = 7 * 24 * 60 * 60  # 7 jours en secondes
+
+    total = 0
+    for co2, date in rows:
+        # on convertit la date texte pour comparer
+        annee, mois, jour = int(date[:4]), int(date[5:7]), int(date[8:10])
+        ts = time.mktime((annee, mois, jour, 0, 0, 0, 0, 0, -1))
+        if maintenant - ts <= sept_jours:
+            total += co2
+
+    return total

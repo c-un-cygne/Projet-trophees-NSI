@@ -9,7 +9,29 @@ class MainScreen(Screen):
 
 
 class HomeTab(MDBottomNavigationItem):
-    pass
+    MOYENNE_FR = 77
+
+    def on_enter(self, *args):
+        app = MDApp.get_running_app()
+        if app.id_user:
+            self.maj_accueil()
+
+    def maj_accueil(self):
+        from db import get_co2_semaine
+        app = MDApp.get_running_app()
+        co2 = get_co2_semaine(app.id_user)
+        self.ids.label_co2_semaine.text = f"{co2:.1f} kg CO2 cette semaine"
+
+        diff = self.MOYENNE_FR - co2
+
+        if co2 == 0:
+            self.ids.label_message.text = "T'as rien enregistré cette semaine !"
+        elif diff > 10:
+            self.ids.label_message.text = f"Bien joué, t'es {diff:.1f} kg sous la moyenne 🌱"
+        elif diff > 0:
+            self.ids.label_message.text = f"Presque, encore {diff:.1f} kg à économiser"
+        else:
+            self.ids.label_message.text = f"Aïe, {abs(diff):.1f} kg au dessus de la moyenne française..."
 
 
 class LeaderboardTab(MDBottomNavigationItem):

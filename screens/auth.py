@@ -40,6 +40,7 @@ class ConnexionScreen(Screen):
         app.root.current = "main"
         # petit délai sinon l'onglet home se charge pas bien
         Clock.schedule_once(lambda dt: app.aller_accueil(), 1.0)
+        app.root.get_screen("main").ids.bottom_nav.ids.tab_manager.get_screen("home").maj_accueil()
 
 
 class InscriptionScreen(Screen):
