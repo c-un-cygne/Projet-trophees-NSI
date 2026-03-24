@@ -63,7 +63,6 @@ class TerraGaugeApp(FriendsMixin, MDApp):
         self.nb_amis = "0"
         self.co2_total = "0.000"
 
-        self.dialog.dismiss()
 
         # on vide les champs pour pas que ça reste affiché
         ecran_co = self.root.get_screen("connexion")
