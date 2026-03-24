@@ -56,3 +56,8 @@ L'écran de profil permet à l'utilisateur de :
 - Consulter ses **informations personnelles**
 - Visualiser son **empreinte carbone globale**
 - Se **déconnecter** de l'application
+
+## Sources
+ 
+- 🇫🇷 **Nos Gestes Climat** — Site officiel du gouvernement français sur l'empreinte carbone individuelle : [nosgestesclimat.fr](https://nosgestesclimat.fr/empreinte-carbone?mtm_campaign=Site&mtm_kwd=InfoGouv)
+ 
