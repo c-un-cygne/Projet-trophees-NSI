@@ -41,7 +41,7 @@ class LeaderboardTab(MDBottomNavigationItem):
         if app.id_user:
             self.charger_classement()
 
-    def charger_classement(self):
+    def charger_classement(self, t=False):
         from db import get_conn, get_total_co2
         app = MDApp.get_running_app()
 
@@ -77,7 +77,7 @@ class LeaderboardTab(MDBottomNavigationItem):
 
         scores = []
         for uid, uname in participants:
-            scores.append((uid, uname, get_total_co2(uid)))
+            scores.append((uid, uname, get_total_co2(uid, t)))
 
         scores.sort(key=lambda x: x[2])  # moins de co2 = mieux
 

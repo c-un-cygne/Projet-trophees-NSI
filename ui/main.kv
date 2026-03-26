@@ -409,7 +409,6 @@
         spacing: "10dp"
 
 
-        # titre + bouton rafraîchir sur la même ligne
         MDBoxLayout:
             size_hint_y: None
             height: "48dp"
@@ -422,16 +421,38 @@
                 font_style: "H6"
                 halign: "center"
 
+        MDBoxLayout:
+            size_hint_y: None
+            height: "48dp"
+            spacing: "8dp"
+            pos_hint: {"center_x": 0.65}
+            size_hint_x: None
+            width: "300dp"
 
-            # bouton pour recharger le classement manuellement
-            MDIconButton:
-                icon: "refresh"
+            MDRaisedButton:
+                text: "Total"
                 pos_hint: {"center_y": 0.5}
                 theme_icon_color: "Custom"
                 icon_color: app.secondary
                 size_hint_x: None
                 width: "40dp"
                 on_release: root.charger_classement()
+            MDRaisedButton:
+                text: "7 jours"
+                pos_hint: {"center_y": 0.5}
+                theme_icon_color: "Custom"
+                icon_color: app.secondary
+                size_hint_x: None
+                width: "40dp"
+                on_release: root.charger_classement(7)
+            MDRaisedButton:
+                text: "1 mois"
+                pos_hint: {"center_y": 0.5}
+                theme_icon_color: "Custom"
+                icon_color: app.secondary
+                size_hint_x: None
+                width: "40dp"
+                on_release: root.charger_classement(31)
 
         # petite explication des règles
         MDLabel:

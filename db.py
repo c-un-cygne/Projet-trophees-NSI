@@ -96,14 +96,18 @@ def ajouter_entree_carbone(user_id, activity_id, quantite):
 
 
 
-def get_total_co2(user_id):
+def get_total_co2(user_id, jours=False):
     if user_id in cache["co2"]:
         val, ts = cache["co2"][user_id]
         if time.time() - ts < TTL_CO2:
             return val
 
     conn = get_conn()
-    row = conn.execute("SELECT SUM(co2_kg) FROM carbon_history WHERE user_id=?", (user_id,)).fetchone()
+    if not jours:
+        row = conn.execute("SELECT SUM(co2_kg) FROM carbon_history WHERE user_id=?", (user_id,)).fetchone()
+    else:
+        ts = time.time()-jours
+        row = conn.execute("SELECT SUM(co2_kg) FROM carbon_history WHERE user_id=? AND date >= date('now', ?)",(user_id, f"-{jours} days")).fetchone()
     conn.close()
 
     val = row[0] if row[0] else 0
