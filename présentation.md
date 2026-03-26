@@ -1,63 +1,39 @@
-#  TerraGauge
+# TerraGauge
 
-> **TerraGauge** est une application mobile conçue pour aider chaque utilisateur à mesurer et réduire son empreinte carbone au quotidien.
-
----
-
-##  Lancement de l'application
-
-Dès l'ouverture de l'application, l'utilisateur peut :
-
-- **Créer un compte** pour commencer à suivre son empreinte carbone
-- **Se connecter** à un compte existant
+TerraGauge est une application mobile pour suivre et réduire son empreinte carbone au quotidien.
 
 ---
 
-## Écran d'accueil
+## Lancement
 
-Une fois connecté, l'utilisateur arrive sur l'écran d'accueil, qui affiche un résumé de son activité récente, notamment :
-
-- La **quantité de CO₂ produite au cours de la dernière semaine**
-- D'autres indicateurs clés liés à sa consommation
+À l'ouverture, l'utilisateur peut créer un compte ou se connecter à un compte existant.
 
 ---
 
-## Menu Amis
+## Accueil
 
-Accessible via l'icône en **haut à droite** de l'écran, ce menu permet de :
+L'écran d'accueil affiche un résumé de l'activité récente : CO₂ produit sur la dernière semaine et quelques indicateurs clés liés à la consommation.
 
-- Consulter la **liste de ses amis**
-- **Envoyer une demande d'ami** en saisissant un nom d'utilisateur
-- Voir les **demandes d'amis reçues** en attente
+---
+
+## Amis
+
+Accessible via l'icône en haut à droite. Permet de consulter sa liste d'amis, d'envoyer une demande en saisissant un nom d'utilisateur, et de voir les demandes reçues en attente.
 
 ---
 
 ## Ajouter une activité
 
-Cette section permet à l'utilisateur de **renseigner ses activités** afin de calculer leur impact carbone. Le processus se déroule en deux étapes :
-
-1. **Sélectionner un élément** dans le menu déroulant (transport, alimentation, énergie, etc.)
-2. **Indiquer la quantité** correspondante, puis confirmer
+L'utilisateur renseigne ses activités en deux temps : il choisit une catégorie (transport, alimentation, énergie…), indique la quantité, puis confirme.
 
 ---
 
 ## Classement
 
-Un tableau de classement compare l'empreinte carbone de l'utilisateur avec celle de ses amis.
-
->  Celui qui émet le **moins de CO₂ est classé premier**, afin d'encourager une consommation plus responsable.
+Un tableau compare l'empreinte carbone de l'utilisateur avec celle de ses amis. Celui qui émet le moins de CO₂ est premier.
 
 ---
 
 ## Profil
 
-L'écran de profil permet à l'utilisateur de :
-
-- Consulter ses **informations personnelles**
-- Visualiser son **empreinte carbone globale**
-- Se **déconnecter** de l'application
-
-## Sources
- 
-- 🇫🇷 **Nos Gestes Climat** — Site officiel du gouvernement français sur l'empreinte carbone individuelle : [nosgestesclimat.fr](https://nosgestesclimat.fr/empreinte-carbone?mtm_campaign=Site&mtm_kwd=InfoGouv)
- 
+Informations
