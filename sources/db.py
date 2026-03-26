@@ -1,3 +1,5 @@
+#Projet : TerraGauge
+#Auteurs : Léo Diotallevi, Patrick Addison, Maël Yvetot
 import os
 import libsql
 import time

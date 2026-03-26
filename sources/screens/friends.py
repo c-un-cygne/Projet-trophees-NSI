@@ -1,3 +1,5 @@
+#Projet : TerraGauge
+#Auteurs : Léo Diotallevi, Patrick Addison, Maël Yvetot
 from kivymd.uix.dialog import MDDialog
 from kivy.animation import Animation
 

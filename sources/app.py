@@ -1,3 +1,5 @@
+#Projet : TerraGauge
+#Auteurs : Léo Diotallevi, Patrick Addison, Maël Yvetot
 from kivymd.app import MDApp
 from kivy.core.window import Window
 from kivy.lang.builder import Builder

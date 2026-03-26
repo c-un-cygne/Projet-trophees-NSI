@@ -1,3 +1,5 @@
+#Projet : TerraGauge
+#Auteurs : Léo Diotallevi, Patrick Addison, Maël Yvetot
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.properties import StringProperty, NumericProperty, BooleanProperty
 

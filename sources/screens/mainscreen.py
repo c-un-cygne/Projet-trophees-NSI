@@ -1,3 +1,5 @@
+#Projet : TerraGauge
+#Auteurs : Léo Diotallevi, Patrick Addison, Maël Yvetot
 from kivy.uix.screenmanager import Screen
 from kivymd.uix.bottomnavigation import MDBottomNavigationItem
 from kivy.clock import Clock
