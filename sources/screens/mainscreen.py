@@ -10,6 +10,8 @@ class MainScreen(Screen):
     pass
 
 
+
+
 class HomeTab(MDBottomNavigationItem):
     MOYENNE_FR = 77
 
@@ -17,6 +19,8 @@ class HomeTab(MDBottomNavigationItem):
         app = MDApp.get_running_app()
         if app.id_user:
             self.maj_accueil()
+
+
 
     def maj_accueil(self):
         from db import get_co2_semaine
@@ -36,12 +40,21 @@ class HomeTab(MDBottomNavigationItem):
             self.ids.label_message.text = f"Aïe, {abs(diff):.1f} kg au dessus de la moyenne française..."
 
 
+
+
+
+
+
+
 class LeaderboardTab(MDBottomNavigationItem):
 
     def on_enter(self, *args):
         app = MDApp.get_running_app()
         if app.id_user:
             self.charger_classement()
+
+
+
 
     def charger_classement(self, t=False):
         from db import get_conn, get_total_co2
@@ -50,19 +63,9 @@ class LeaderboardTab(MDBottomNavigationItem):
         conn = get_conn()
 
         # la table friendships est pas symétrique donc on fait deux requêtes
-        amis = conn.execute(
-            """SELECT users.id, users.username FROM friendships
-               JOIN users ON friendships.friend_id = users.id
-               WHERE friendships.user_id=? AND friendships.status='friends'""",
-            (app.id_user,)
-        ).fetchall()
+        amis = conn.execute("""SELECT users.id, users.username FROM friendships JOIN users ON friendships.friend_id = users.id WHERE friendships.user_id=? AND friendships.status='friends'""", (app.id_user,)).fetchall()
 
-        amis += conn.execute(
-            """SELECT users.id, users.username FROM friendships
-               JOIN users ON friendships.user_id = users.id
-               WHERE friendships.friend_id=? AND friendships.status='friends'""",
-            (app.id_user,)
-        ).fetchall()
+        amis += conn.execute("""SELECT users.id, users.username FROM friendships JOIN users ON friendships.user_id = users.id WHERE friendships.friend_id=? AND friendships.status='friends'""", (app.id_user,)).fetchall()
 
         conn.close()
 
@@ -94,10 +97,13 @@ class LeaderboardTab(MDBottomNavigationItem):
         ]
 
 
+
 class ProfileTab(MDBottomNavigationItem):
 
     def on_enter(self, *args):
         MDApp.get_running_app().maj_co2()
+
+
 
 
 class AddTab(MDBottomNavigationItem):
@@ -108,6 +114,9 @@ class AddTab(MDBottomNavigationItem):
     def on_enter(self, *args):
         Clock.schedule_once(lambda dt: self.charger_categories(), 0)
 
+
+
+
     def charger_categories(self):
         from db import get_categories
         cats = ["Toutes"] + get_categories()
@@ -115,11 +124,18 @@ class AddTab(MDBottomNavigationItem):
         self.ids.category_spinner.text = "Toutes"
         self.rechercher()
 
+
+
+
+
     def rechercher(self):
         # on annule l'event précédent pour pas spammer la bdd
         if self.recherche_event:
             self.recherche_event.cancel()
         self.recherche_event = Clock.schedule_once(lambda dt: self.faire_recherche(), 0.3)
+
+
+
 
     def faire_recherche(self):
         from db import rechercher_activites
@@ -139,6 +155,10 @@ class AddTab(MDBottomNavigationItem):
             for a in rechercher_activites(q, cat)
         ]
 
+
+
+
+
     def selectionner_activite(self, activity_id, nom, unite, facteur):
         self.activite_selectionnee = {"id": activity_id, "nom": nom, "unite": unite, "facteur": facteur}
         self.ids.selected_label.text = f"[b]{nom}[/b]  ({unite})"
@@ -146,6 +166,10 @@ class AddTab(MDBottomNavigationItem):
         self.ids.quantity_field.hint_text = f"Quantité en {unite}"
         self.ids.quantity_field.text = ""
         self.ids.valider_btn.disabled = False
+
+
+
+
 
     def valider(self):
         app = MDApp.get_running_app()
@@ -170,6 +194,9 @@ class AddTab(MDBottomNavigationItem):
         app.maj_co2()
         self.reset_selection()
 
+
+
+
     def reset_selection(self):
         self.activite_selectionnee = None
         self.ids.selected_label.text = "Aucune activité sélectionnée"
@@ -177,6 +204,8 @@ class AddTab(MDBottomNavigationItem):
         self.ids.quantity_field.disabled = True
         self.ids.valider_btn.disabled = True
         Clock.schedule_once(lambda dt: self.effacer_feedback(), 3)
+
+
 
     def effacer_feedback(self):
         self.ids.feedback_label.text = ""

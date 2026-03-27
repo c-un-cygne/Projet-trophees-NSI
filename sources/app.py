@@ -45,6 +45,9 @@ class TerraGaugeApp(FriendsMixin, MDApp):
     def aller_accueil(self):
         self.root.get_screen("main").ids.bottom_nav.current = "home"
 
+
+
+
     def maj_nb_amis(self):
         if not self.id_user:
             return
@@ -52,11 +55,17 @@ class TerraGaugeApp(FriendsMixin, MDApp):
         from db import get_friends_count
         self.nb_amis = str(get_friends_count(self.id_user))
 
+
+
+
     def maj_co2(self):
         if not self.id_user:
             return
         from db import get_total_co2
         self.co2_total = f"{get_total_co2(self.id_user):.3f}"
+
+
+
 
     def deconnexion(self):
         self.id_user = None

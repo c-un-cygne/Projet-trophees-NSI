@@ -28,11 +28,18 @@ class FriendsMixin:
         )
         self.dialog.open()
 
+
+
     def menu_demande_amis(self):
         # petite anim pour pas que ça soit brutal
         anim = Animation(opacity=0, duration=0.15)
         anim.bind(on_complete=lambda *a: self.ouvrir_demandes())
         anim.start(self.dialog)
+
+
+
+
+
 
     def ouvrir_demandes(self):
         self.dialog.dismiss()
@@ -52,6 +59,15 @@ class FriendsMixin:
         self.dialog.open()
         Animation(opacity=1, duration=0.15).start(self.dialog)
 
+
+
+
+
+
+
+
+
+
     def refresh_demandes(self):
         if not self.dialog or not isinstance(self.dialog.content_cls, DemandeAmis):
             return
@@ -60,6 +76,10 @@ class FriendsMixin:
         contenu.ids.liste_demandes.clear_widgets()
         for u in recuperer_demandes_amis(self.id_user):
             contenu.ids.liste_demandes.add_widget(ListItemDemandeAmis(username=u))
+
+
+
+
 
     def refresh_amis(self):
         if not self.dialog or not isinstance(self.dialog.content_cls, FriendsMenu):
@@ -70,13 +90,28 @@ class FriendsMixin:
         for u in get_friends_list(self.id_user):
             contenu.ids.liste_amis.add_widget(ListItemAmis(username=u))
 
+
+
+
+
+
     def accept_request(self, username):
         if accept_friend_request(self.id_user, username):
             self.refresh_demandes()
 
+
+
+
+
+
+
     def refuse_request(self, username):
         if refuse_friend_request(self.id_user, username):
             self.refresh_demandes()
+
+
+
+
 
     def envoyer_demande(self, username):
         res = send_friend_request(self.id_user, username)
@@ -92,9 +127,22 @@ class FriendsMixin:
         self.dialog = MDDialog(title="Amis", text=texte)
         self.dialog.open()
 
+
+
+
+
+
     def supprimer_ami(self, username):
         if remove_friend(self.id_user, username):
             self.refresh_amis()
+
+
+
+
+
+
+
+
 
     def voir_profil(self, username):
         pass  # à faire plus tard

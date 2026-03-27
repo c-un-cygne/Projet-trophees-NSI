@@ -54,7 +54,7 @@ class InscriptionScreen(Screen):
         email = self.ids.email.text.strip()
 
         if mdp != mdp2:
-            self.ids.password_error.text = "Les mots de passe ne correspondent pas (mets tes lunettes la prochaine fois)"
+            self.ids.password_error.text = "Les mots de passe ne correspondent pas "
             return
 
         if len(mdp) < 6:
