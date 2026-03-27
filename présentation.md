@@ -5,7 +5,7 @@
 ### Naissance de l'idée : 
 
 Quand on a réfléchi autour du thème de l'année, on s’est rendu compte que le plus grand lien entre la nature et l'informatique, 
-c'est littéralement l'impact désastreux que l'informatique a sur l'écologie.
+c'est l'impact désastreux que l'informatique a sur l'écologie.
 On a donc décidé de se pencher un peu plus dessus en élargissant le sujet autour de l'empreinte carbone en général.
 On s'est dit qu'une application qui pourrait rendre ça visuel et concret pourrait avoir pas mal de sens. 
 
