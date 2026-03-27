@@ -9,3 +9,6 @@ Concept: Une application pour mesurer son empreinte carbone avec un classement a
 pip install -r requirements.txt
 
 ```
+
+## Lancement
+Pour démarer le projet, utiliser python pour démarer main.py
